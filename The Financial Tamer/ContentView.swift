@@ -15,22 +15,27 @@ struct ContentView: View {
     var body: some View {
         TabView {
             Tab("Расходы", image: "Expenses") {
+                ErrorView()
             }
 
 
             Tab("Доходы", image: "Income") {
+                ErrorView()
             }
             
             
             Tab("Счет", image: "Account") {
+                ErrorView()
             }
             
             
             Tab("Статьи", image: "Articles") {
+                ErrorView()
             }
 
 
             Tab("Настройки", image: "Settings") {
+                ErrorView()
             }
         }
     }
