@@ -13,6 +13,14 @@ struct BankAccount{
     var name: String
     var balance: Decimal
     var currency: String
-    let createdAt: Data
-    var updatedAt: Data?
+    let createdAt: Date
+    var updatedAt: Date
+}
+
+extension BankAccount{
+    enum chengesKeys: String, CodingKey {
+        case name = "name"
+        case balance = "balance"
+        case currency = "currency"
+    }
 }
