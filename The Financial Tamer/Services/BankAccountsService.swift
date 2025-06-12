@@ -14,7 +14,7 @@ final class BankAccountsService {
     ]
 
     
-    func getBankAccount(_ id: Int = 0) async throws -> BankAccount {
+    func getAccount(_ id: Int = 0) async throws -> BankAccount {
         guard id >= 0 && id < bankAccounts.count else {
             throw NSError(domain: "BankAccountsService", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "Account with ID $id) not found"
@@ -25,13 +25,21 @@ final class BankAccountsService {
     }
 
     
-    func updateBankAccount<Value>(id: Int, keyPath: WritableKeyPath<BankAccount, Value>, value: Value) async throws -> BankAccount {
+    func update<Value>(id: Int, keyPath: WritableKeyPath<BankAccount, Value>, value: Value) async throws -> BankAccount {
 
-        var account = try await getBankAccount(id)
+        var account = try await getAccount(id)
         account[keyPath: keyPath] = value
         account.updatedAt = Date()
         bankAccounts[id] = account
 
         return account
+    }
+}
+
+extension BankAccount{
+    enum chengesKeys: String, CodingKey {
+        case name = "name"
+        case balance = "balance"
+        case currency = "currency"
     }
 }

@@ -17,10 +17,3 @@ struct BankAccount{
     var updatedAt: Date
 }
 
-extension BankAccount{
-    enum chengesKeys: String, CodingKey {
-        case name = "name"
-        case balance = "balance"
-        case currency = "currency"
-    }
-}
