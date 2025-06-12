@@ -36,10 +36,3 @@ final class BankAccountsService {
     }
 }
 
-extension BankAccount{
-    enum chengesKeys: String, CodingKey {
-        case name = "name"
-        case balance = "balance"
-        case currency = "currency"
-    }
-}

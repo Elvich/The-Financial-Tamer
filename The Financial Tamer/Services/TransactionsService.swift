@@ -49,11 +49,3 @@ final class TransactionsService {
     }
 }
 
-extension Transaction{
-    enum chengesKeys: String, CodingKey {
-        case categoryId = "categoryId"
-        case amount = "amount"
-        case transactionDate = "transactionDate"
-        case comment = "comment"
-    }
-}
