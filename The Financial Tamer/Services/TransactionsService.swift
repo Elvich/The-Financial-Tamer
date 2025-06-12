@@ -39,12 +39,12 @@ final class TransactionsService {
         return transaction
     }
 
-    func delete(id: Int) async throws -> Bool {
+    func delete(id: Int) async -> Bool {
         if let index = transactions.firstIndex(where: { $0.id == id }) {
             transactions.remove(at: index)
             return true
         } else {
-            throw NSError(domain: "TransactionsService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Transaction not found"])
+            return false
         }
     }
 }
