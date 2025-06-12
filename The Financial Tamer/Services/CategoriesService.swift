@@ -18,11 +18,11 @@ final class CategoriesService {
     ]
 
     
-    func categories() async throws -> [Category] {
+    func categories() async -> [Category] {
         return categories
     }
 
-    func categories(for direction: Direction) async throws -> [Category] {
+    func categories(for direction: Direction) async -> [Category] {
         return categories.filter { $0.direction == direction }
     }
 }
