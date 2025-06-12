@@ -27,6 +27,7 @@ extension Transaction{
         
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
 
         guard let id = dict["id"] as? Int,
               
