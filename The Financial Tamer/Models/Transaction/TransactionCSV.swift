@@ -18,7 +18,7 @@ extension Transaction{
         }
         
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
         
         let id: Int = Int(components[0]) ?? 0
         let accountId: Int = Int(components[1]) ?? 0

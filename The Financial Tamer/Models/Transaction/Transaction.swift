@@ -26,7 +26,7 @@ extension Transaction{
         }
         
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
         dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
 
         guard let id = dict["id"] as? Int,
@@ -66,7 +66,7 @@ extension Transaction{
     var jsonObject: [String: Any] {
         
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
         dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
         
         let value = Decimal(string: "500")!
