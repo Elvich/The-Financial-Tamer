@@ -10,7 +10,7 @@ import Foundation
 final class TransactionsService {
     
     private var transactions: [Transaction] = [
-        Transaction(id: 0, accountId: 0, categoryId: 2, amount: 150.00, transactionDate: Date(), comment: "Люблю такси", createdAt: Date(), updatedAt: Date())
+        Transaction(id: 0, account: BankAccount(id: 0, userId: 0, name: "Иван Иванович", balance: 100.00, currency: "RUB", createdAt: Date(), updatedAt: Date()), category: Category(id: 2, name: "ЯндексGO", emoji: "🚕", direction: .outcome), amount: 150.00, transactionDate: Date(), comment: "Люблю такси", createdAt: Date(), updatedAt: Date())
     ]
 
     

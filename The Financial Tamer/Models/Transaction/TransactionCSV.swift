@@ -21,8 +21,8 @@ extension Transaction{
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
         
         let id: Int = Int(components[0]) ?? 0
-        let accountId: Int = Int(components[1]) ?? 0
-        let categoryId: Int = Int(components[2]) ?? 0
+        let account: BankAccount = BankAccount.parse(jsonObject: components[1])!
+        let category: Category = Category.parse(jsonObject: components[2])!
         let amount: Decimal = Decimal(string: (components[3] as String)) ?? 0
         let transactionDate: Date = dateFormatter.date(from: components[4]) ?? Date()
         let comment: String = components[5]
@@ -31,8 +31,8 @@ extension Transaction{
         
         return Transaction(
             id: id,
-            accountId: accountId,
-            categoryId: categoryId,
+            account: account,
+            category: category,
             amount: amount,
             transactionDate: transactionDate,
             comment: comment,

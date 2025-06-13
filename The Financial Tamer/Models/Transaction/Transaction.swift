@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct Transaction : Equatable{
+struct Transaction{
     let id: Int
-    let accountId: Int
-    var categoryId: Int
+    let account: BankAccount
+    var category: Category
     var amount: Decimal
     var transactionDate: Date
     var comment: String
@@ -31,21 +31,21 @@ extension Transaction{
 
         guard let id = dict["id"] as? Int,
               
-              let accountId = dict["accountId"] as? Int,
-              let categoryId = dict["categoryId"] as? Int,
+            let account = BankAccount.parse(jsonObject: dict["account"] as Any),
+            let category = Category.parse(jsonObject: dict["category"] as Any),
               
-              let amount = Decimal(string: (dict["amount"] as? String) ?? ""),
+            let amount = Decimal(string: (dict["amount"] as? String) ?? ""),
               
-              let transactionDateString = dict["transactionDate"] as? String,
-              let transactionDate = dateFormatter.date(from: transactionDateString),
+            let transactionDateString = dict["transactionDate"] as? String,
+            let transactionDate = dateFormatter.date(from: transactionDateString),
               
-              let comment = dict["comment"] as? String,
+            let comment = dict["comment"] as? String,
               
-              let createdAtString = dict["createdAt"] as? String,
-              let createdAt = dateFormatter.date(from: createdAtString),
+            let createdAtString = dict["createdAt"] as? String,
+            let createdAt = dateFormatter.date(from: createdAtString),
               
-              let updatedAtString = dict["updatedAt"] as? String,
-              let updatedAt = dateFormatter.date(from: updatedAtString)
+            let updatedAtString = dict["updatedAt"] as? String,
+            let updatedAt = dateFormatter.date(from: updatedAtString)
         else {
             print("Error parsing Transaction")
             return nil
@@ -53,8 +53,8 @@ extension Transaction{
 
         return Transaction(
             id: id,
-            accountId: accountId,
-            categoryId: categoryId,
+            account: account,
+            category: category,
             amount: amount,
             transactionDate: transactionDate,
             comment: comment,
@@ -75,8 +75,8 @@ extension Transaction{
         
         return [
             "id": self.id,
-            "accountId": self.accountId,
-            "categoryId": self.categoryId,
+            "account": self.account,
+            "category": self.category,
             "amount": "\(formatted)",
             "transactionDate": dateFormatter.string(from: self.transactionDate),
             "comment": self.comment,

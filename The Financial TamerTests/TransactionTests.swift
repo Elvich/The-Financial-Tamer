@@ -14,8 +14,21 @@ struct TransactionTests {
     
     let transactionJson: [String:Any] = [
         "id": 1,
-        "accountId": 1,
-        "categoryId": 1,
+        "account": [
+            "id": 1,
+            "userId": 1,
+            "name": "Основной счёт",
+            "balance": "1000.00",
+            "currency": "RUB",
+            "createdAt": "2025-06-13T16:05:56.890Z",
+            "updatedAt": "2025-06-13T16:05:56.890Z"
+        ],
+        "category": [
+            "id": 1,
+            "name": "Зарплата",
+            "emoji": "💰",
+            "isIncome": true
+        ],
         "amount": "500.00",
         "transactionDate": "2025-06-09T23:33:48.883Z",
         "comment": "Зарплата за месяц",
@@ -32,8 +45,6 @@ struct TransactionTests {
         let transaction = Transaction.parse(jsonObject: transactionJson)!
         let newTransactionJson = transaction.jsonObject
         #expect(newTransactionJson["id"] as? Int == transactionJson["id"] as? Int)
-        #expect(newTransactionJson["accountId"] as? Int == transactionJson["accountId"] as? Int)
-        #expect(newTransactionJson["categoryId"] as? Int == transactionJson["categoryId"] as? Int)
         
         #expect(newTransactionJson["amount"] as? String == transactionJson["amount"] as? String)
         
