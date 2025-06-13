@@ -30,7 +30,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1BC064942DF332FE00901557 /* The Financial Tamer */ = {
+		1B50F72D2DFB17C000EB4C16 /* The Financial Tamer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "The Financial Tamer";
 			sourceTree = "<group>";
@@ -75,7 +75,7 @@
 		1BC064892DF332FE00901557 = {
 			isa = PBXGroup;
 			children = (
-				1BC064942DF332FE00901557 /* The Financial Tamer */,
+				1B50F72D2DFB17C000EB4C16 /* The Financial Tamer */,
 				1BC064A42DF332FF00901557 /* The Financial TamerTests */,
 				1BC064AE2DF332FF00901557 /* The Financial TamerUITests */,
 				1BC064932DF332FE00901557 /* Products */,
@@ -108,7 +108,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				1BC064942DF332FE00901557 /* The Financial Tamer */,
+				1B50F72D2DFB17C000EB4C16 /* The Financial Tamer */,
 			);
 			name = "The Financial Tamer";
 			packageProductDependencies = (
