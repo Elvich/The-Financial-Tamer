@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct BankAccount{
+struct BankAccount: Hashable{
     let id: Int
     let userId: Int
     var name: String

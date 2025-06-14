@@ -18,7 +18,7 @@ final class TransactionsService {
         return transactions.filter{ $0.transactionDate >= start && $0.transactionDate <= end }
     }
     
-    func getTransactions() async throws -> [Transaction] {
+    func getTransactions() -> [Transaction] {
         return transactions.filter{ $0.transactionDate == Date() }
     }
 

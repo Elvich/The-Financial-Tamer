@@ -10,14 +10,24 @@ import SwiftUI
 struct TransactionsListView: View {
     
     let direction: Direction
+    var transactionService = TransactionsService()
     
+
     var body: some View {
-        NavigationStack{
-            Text("Привет, это страница \(direction)!")
-        }.navigationTitle("\(direction == .outcome ? "Расходы" : "Доходы") сегодня")
+        NavigationStack {
+            LazyVStack {
+                Text("Привет, это страница \(direction)!")
+                
+                ForEach(transactionService.getTransactions(), id: \.id) { transaction in
+                    NavigationLink(value: transaction) {
+                        Text("Транзакция $\(transaction.amount)")
+                    }
+                }
+            }
+            .navigationTitle(direction == .outcome ? "Расходы" : "Доходы")
+        }
     }
 }
-
 #Preview {
     TransactionsListView(direction: .outcome)
 }
