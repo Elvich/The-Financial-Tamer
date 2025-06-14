@@ -17,6 +17,10 @@ final class TransactionsService {
     func getTransactions(_ start: Date, _ end: Date) async throws -> [Transaction] {
         return transactions.filter{ $0.transactionDate >= start && $0.transactionDate <= end }
     }
+    
+    func getTransactions() async throws -> [Transaction] {
+        return transactions.filter{ $0.transactionDate == Date() }
+    }
 
     func add(_ transaction: Transaction) async throws -> Transaction {
         transactions.append(transaction)
