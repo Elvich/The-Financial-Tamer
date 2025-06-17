@@ -19,7 +19,10 @@ final class TransactionsService {
     }
     
     func getTransactions() -> [Transaction] {
-        return transactions.filter{ $0.transactionDate == Date() }
+        let calendar = Calendar.current
+        return transactions.filter {
+            calendar.isDate($0.transactionDate, inSameDayAs: Date())
+        }
     }
 
     func add(_ transaction: Transaction) async throws -> Transaction {

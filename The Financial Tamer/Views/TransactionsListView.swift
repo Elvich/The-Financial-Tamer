@@ -14,20 +14,34 @@ struct TransactionsListView: View {
     
 
     var body: some View {
+        
+        
         NavigationStack {
             LazyVStack {
                 Text("Привет, это страница \(direction)!")
                 
                 ForEach(transactionService.getTransactions(), id: \.id) { transaction in
                     NavigationLink(value: transaction) {
-                        Text("Транзакция $\(transaction.amount)")
+                        HStack{
+                            Text("Транзакция $\(transaction.amount)")
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                ScrollView {
+                    VStack{
+                        
+                        }
                     }
                 }
             }
-            .navigationTitle(direction == .outcome ? "Расходы" : "Доходы")
+            .navigationTitle(direction == .outcome ? "Расходы" : "Доходы" + " сегодня")
         }
     }
-}
+
+    
 #Preview {
-    TransactionsListView(direction: .outcome)
+    TransactionsListView(direction: .income)
 }
