@@ -31,8 +31,6 @@ extension BankAccount{
               let userId = dict["userId"] as? Int,
               let name = dict["name"] as? String,
               
-              
-              //let balance = Decimal(string: (dict["balance"] as? String) ?? ""),
               let balance = Decimal(string: dict["balance"] as? String ?? "", locale: Locale(identifier: "en_US_POSIX")),
               
               let currency = dict["currency"] as? String,
