@@ -10,8 +10,10 @@ import Foundation
 extension Transaction{
     
     static func parse(csvString: String) -> Transaction?{
-        let components = csvString.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                
+        let components = csvString
+            .components(separatedBy: CharacterSet(charactersIn: ",;"))
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
                 
         guard components.count == 8 else {
             return nil
