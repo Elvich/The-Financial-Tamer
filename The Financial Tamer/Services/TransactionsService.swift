@@ -12,7 +12,9 @@ final class TransactionsService {
     private var transactions: [Transaction] = [
         Transaction(id: 0, account: BankAccount(id: 0, userId: 0, name: "Иван Иванович", balance: 150000.00, currency: "RUB", createdAt: Date(), updatedAt: Date()), category: Category(id: 2, name: "ЯндексGO", emoji: "🚕", direction: .outcome), amount: 150.00, transactionDate: Date(), comment: "Люблю такси", createdAt: Date(), updatedAt: Date()),
         
-        Transaction(id: 1, account: BankAccount(id: 0, userId: 0, name: "Иван Иванович", balance: 150000.00, currency: "RUB", createdAt: Date(), updatedAt: Date()), category: Category(id: 1, name: "ЗП", emoji: "💰", direction: .income), amount: 300000.00, transactionDate: Date(), comment: "Ура, я могу покушать =)", createdAt: Date(), updatedAt: Date())
+        Transaction(id: 1, account: BankAccount(id: 0, userId: 0, name: "Иван Иванович", balance: 150000.00, currency: "RUB", createdAt: Date(), updatedAt: Date()), category: Category(id: 1, name: "ЗП", emoji: "💰", direction: .income), amount: 300000.00, transactionDate: Date(), comment: "Ура, я могу покушать =)", createdAt: Date(), updatedAt: Date()),
+        
+        Transaction(id: 2, account: BankAccount(id: 0, userId: 0, name: "Иван Иванович", balance: 150000.00, currency: "RUB", createdAt: Date(), updatedAt: Date()), category: Category(id: 0, name: "Маркет", emoji: "🚚", direction: .outcome), amount: 236.00, transactionDate: Date(), comment: "Люблю такси", createdAt: Date(), updatedAt: Date()),
     ]
 
     

@@ -23,9 +23,9 @@ struct TransactionsListView: View {
                     
                     Spacer()
                     
-                    Text("Очень много $")
+                    Text("\(transactionService.getTransactions(direction).reduce(Decimal.zero) { $0 + $1.amount }) $")
                 }
-                .padding(.horizontal)
+                .padding()
                 
                 
                 
