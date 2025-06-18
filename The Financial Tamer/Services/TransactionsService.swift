@@ -10,7 +10,9 @@ import Foundation
 final class TransactionsService {
     
     private var transactions: [Transaction] = [
-        Transaction(id: 0, account: BankAccount(id: 0, userId: 0, name: "Иван Иванович", balance: 100.00, currency: "RUB", createdAt: Date(), updatedAt: Date()), category: Category(id: 2, name: "ЯндексGO", emoji: "🚕", direction: .outcome), amount: 150.00, transactionDate: Date(), comment: "Люблю такси", createdAt: Date(), updatedAt: Date())
+        Transaction(id: 0, account: BankAccount(id: 0, userId: 0, name: "Иван Иванович", balance: 150000.00, currency: "RUB", createdAt: Date(), updatedAt: Date()), category: Category(id: 2, name: "ЯндексGO", emoji: "🚕", direction: .outcome), amount: 150.00, transactionDate: Date(), comment: "Люблю такси", createdAt: Date(), updatedAt: Date()),
+        
+        Transaction(id: 1, account: BankAccount(id: 0, userId: 0, name: "Иван Иванович", balance: 150000.00, currency: "RUB", createdAt: Date(), updatedAt: Date()), category: Category(id: 1, name: "ЗП", emoji: "💰", direction: .income), amount: 300000.00, transactionDate: Date(), comment: "Ура, я могу покушать =)", createdAt: Date(), updatedAt: Date())
     ]
 
     
@@ -20,6 +22,14 @@ final class TransactionsService {
     
     func getTransactions() -> [Transaction] {
         let calendar = Calendar.current
+        return transactions.filter {
+            calendar.isDate($0.transactionDate, inSameDayAs: Date())
+        }
+    }
+    
+    func getTransactions(_ direction: Direction) -> [Transaction] {
+        let calendar = Calendar.current
+        let transactions: [Transaction] = self.transactions.filter { $0.category.direction == direction }
         return transactions.filter {
             calendar.isDate($0.transactionDate, inSameDayAs: Date())
         }

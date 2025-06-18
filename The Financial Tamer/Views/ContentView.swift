@@ -15,12 +15,12 @@ struct ContentView: View {
     var body: some View {
         TabView {
             Tab("Расходы", image: "Expenses") {
-                ErrorView()
+                TransactionsListView(direction: .outcome)
             }
 
 
             Tab("Доходы", image: "Income") {
-                ErrorView()
+                TransactionsListView(direction: .income)
             }
             
             
@@ -38,6 +38,8 @@ struct ContentView: View {
                 ErrorView()
             }
         }
+        
+
     }
     
 }

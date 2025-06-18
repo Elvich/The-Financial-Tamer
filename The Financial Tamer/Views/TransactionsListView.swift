@@ -15,31 +15,48 @@ struct TransactionsListView: View {
 
     var body: some View {
         
-        
         NavigationStack {
-            LazyVStack {
-                Text("Привет, это страница \(direction)!")
+            VStack{
                 
-                ForEach(transactionService.getTransactions(), id: \.id) { transaction in
-                    NavigationLink(value: transaction) {
-                        HStack{
-                            Text("Транзакция $\(transaction.amount)")
-                        }
-                    }
+                HStack{
+                    Text("Всего")
+                    
+                    Spacer()
+                    
+                    Text("Очень много $")
                 }
+                .padding(.horizontal)
                 
-                Spacer()
                 
-                ScrollView {
-                    VStack{
+                
+                List(transactionService.getTransactions(direction), id: \.self){ transition in
+                    HStack{
+                        Text("\(transition.category.emoji)    \(transition.category.name)")
                         
-                        }
+                        Spacer()
+                        
+                        Text("\(transition.amount) $")
+                        Text(">")
+                    }
+                    
+                }
+            }
+            .background(Color(uiColor: UIColor.systemGroupedBackground))
+            
+            .navigationTitle((direction == .outcome ? "Расходы" : "Доходы") + " сегодня")
+            
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    NavigationLink(destination: ErrorView()) {
+                        Image(systemName: "clock")
+                            .foregroundColor(.purple)
                     }
                 }
             }
-            .navigationTitle(direction == .outcome ? "Расходы" : "Доходы" + " сегодня")
+            
         }
     }
+}
 
     
 #Preview {
