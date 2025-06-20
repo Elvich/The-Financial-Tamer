@@ -24,7 +24,7 @@ struct TransactionsListView: View {
             .navigationTitle(title)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    NavigationLink(destination: ErrorView()) {
+                    NavigationLink(destination: HistoryView(direction: direction)) {
                         Image(systemName: "clock")
                             .foregroundColor(.purple)
                     }
