@@ -38,6 +38,7 @@ struct HistoryView: View {
                     transactionsSettingsSection()
                     transactionsSection()
                 }
+                .padding(.bottom)
             }
         }
         .navigationTitle("Моя история")
@@ -60,12 +61,18 @@ struct HistoryView: View {
             Text("Начало")
             Spacer()
             DatePicker("", selection: $startDate, displayedComponents: .date)
+                .onChange(of: startDate) { _, newDate in
+                    endDate = newDate > endDate ? newDate : endDate
+                }
         }
         
         HStack() {
             Text("Конец")
             Spacer()
             DatePicker("", selection: $endDate, displayedComponents: .hourAndMinute)
+                .onChange(of: endDate) { _, newDate in
+                    startDate = newDate < startDate ? newDate : startDate
+                }
         }
         
         HStack() {
