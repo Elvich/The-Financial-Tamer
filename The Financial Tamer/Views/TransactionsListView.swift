@@ -12,39 +12,16 @@ struct TransactionsListView: View {
     let direction: Direction
     var transactionService = TransactionsService()
     
-
     var body: some View {
-        
         NavigationStack {
-            VStack{
-                
-                HStack{
-                    Text("Всего")
-                    
-                    Spacer()
-                    
-                    Text("\(transactionService.getTransactions(direction).reduce(Decimal.zero) { $0 + $1.amount }) $")
+            VStack {
+                List{
+                    totalRowView()
+                    transactionsSection()
                 }
-                .padding()
-                
-                
-                
-                List(transactionService.getTransactions(direction), id: \.self){ transition in
-                    HStack{
-                        Text("\(transition.category.emoji)    \(transition.category.name)")
-                        
-                        Spacer()
-                        
-                        Text("\(transition.amount) $")
-                        Text(">")
-                    }
-                    
-                }
+                .padding(.bottom)
             }
-            .background(Color(uiColor: UIColor.systemGroupedBackground))
-            
-            .navigationTitle((direction == .outcome ? "Расходы" : "Доходы") + " сегодня")
-            
+            .navigationTitle(title)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     NavigationLink(destination: ErrorView()) {
@@ -53,12 +30,49 @@ struct TransactionsListView: View {
                     }
                 }
             }
-            
+        }
+    }
+    
+    
+    private var title: String {
+        (direction == .outcome ? "Расходы" : "Доходы") + " сегодня"
+    }
+    
+    @ViewBuilder
+    private func totalRowView() -> some View {
+        let transactions = transactionService.getTransactions(direction)
+        let totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
+        
+        Section() {
+            HStack() {
+                Text("Всего")
+                Spacer()
+                Text("\(totalAmount) $")
+            }
+        }
+        .accessibilityLabel(/*@START_MENU_TOKEN@*/"Label"/*@END_MENU_TOKEN@*/)
+        
+        
+    }
+    
+    @ViewBuilder
+    private func transactionsSection() -> some View {
+        let transactions: [Transaction] = transactionService.getTransactions(direction)
+        
+        Section(header: Text("Операции")) {
+            ForEach(transactions, id: \.self) { transition in
+                NavigationLink(destination: ErrorView()) {
+                    HStack {
+                        Text("\(transition.category.emoji)    \(transition.category.name)")
+                        Spacer()
+                        Text("\(transition.amount) $")
+                    }
+                }
+            }
         }
     }
 }
 
-    
 #Preview {
     TransactionsListView(direction: .income)
 }
