@@ -14,7 +14,7 @@ struct TransactionsListView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack() {
                 List{
                     totalRowView()
                     transactionsSection()
@@ -43,16 +43,11 @@ struct TransactionsListView: View {
         let transactions = transactionService.getTransactions(direction)
         let totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
         
-        Section() {
-            HStack() {
-                Text("Всего")
-                Spacer()
-                Text("\(totalAmount) $")
-            }
+        HStack() {
+            Text("Всего")
+            Spacer()
+            Text("\(totalAmount) $")
         }
-        .accessibilityLabel(/*@START_MENU_TOKEN@*/"Label"/*@END_MENU_TOKEN@*/)
-        
-        
     }
     
     @ViewBuilder
