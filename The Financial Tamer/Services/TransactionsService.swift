@@ -22,7 +22,7 @@ final class TransactionsService {
         return transactions.filter{ $0.transactionDate >= start && $0.transactionDate <= end }
     }
     
-    func getTransactions(start: Date, end: Date, direction: Direction) async throws -> [Transaction] {
+    func getTransactions(start: Date, end: Date, direction: Direction) -> [Transaction] {
         
         let transactions: [Transaction] = self.transactions.filter { $0.category.direction == direction }
         
