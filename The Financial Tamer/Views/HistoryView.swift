@@ -12,6 +12,8 @@ struct HistoryView: View {
     let direction: Direction
     var transactionService = TransactionsService()
     
+    @State private var sortType: SortType = .date
+    
     @State private var startDate = Date()
     @State private var endDate = Date()
     
@@ -75,6 +77,15 @@ struct HistoryView: View {
                 }
         }
         
+        HStack{
+            
+            Picker("Сортировать по", selection: $sortType) {
+                ForEach(SortType.allCases, id: \.self) { type in
+                    Text(type.rawValue).tag(type)
+                }
+            }
+        }
+        
         HStack() {
             Text("Сумма")
             Spacer()
@@ -86,8 +97,10 @@ struct HistoryView: View {
     private func transactionsSection() -> some View {
         let transactions: [Transaction] = transactionService.getTransactions(start: startDate, end: endDate, direction: direction)
         
+        let sortedTransactions = sortTransactions(transactions)
+        
         Section(header: Text("Операции")) {
-            ForEach(transactions, id: \.self) { transition in
+            ForEach(sortedTransactions, id: \.self) { transition in
                 NavigationLink(destination: ErrorView()) {
                     HStack {
                         Text("\(transition.category.emoji)    \(transition.category.name)")
@@ -98,7 +111,23 @@ struct HistoryView: View {
             }
         }
     }
+    
+    private func sortTransactions(_ transactions: [Transaction]) -> [Transaction] {
+        switch sortType {
+            case .date:
+                return transactions.sorted { $0.transactionDate > $1.transactionDate }
+            case .amount:
+                return transactions.sorted { $0.amount > $1.amount }
+        }
+    }
 
+}
+
+extension HistoryView{
+    enum SortType: String, CaseIterable {
+        case date = "дате"
+        case amount = "сумме"
+    }
 }
 
 #Preview {
