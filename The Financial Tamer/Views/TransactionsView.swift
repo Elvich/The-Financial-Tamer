@@ -9,10 +9,29 @@ import SwiftUI
 
 struct TransactionsView {
     
-    let transactionService: TransactionsService = TransactionsService()
+    private let transactionService: TransactionsService = TransactionsService()
+    private let dateService = DateService.shared
+    
+    let direction: Direction
     
     @ViewBuilder
-    private func transactionsSection(startDate: Date, endDate: Date, direction: Direction) -> some View {
+    func totalRowView(text:String = "Всего") -> some View {
+        let transactions = transactionService.getTransactions(direction)
+        let totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
+        
+        HStack() {
+            Text(text)
+            Spacer()
+            Text("\(totalAmount) $")
+        }
+    }
+    
+    @ViewBuilder
+    func transactionsSection() -> some View {
+        
+        let startDate: Date = dateService.startOfDay()
+        let endDate: Date = dateService.endOfDay()
+        
         let transactions: [Transaction] = transactionService.getTransactions(start: startDate, end: endDate, direction: direction)
         
         Section(header: Text("Операции")) {
@@ -29,7 +48,7 @@ struct TransactionsView {
     }
     
     @ViewBuilder
-    private func transactionsSection(startDate: Date, endDate: Date, direction: Direction, sortType: SortType) -> some View {
+    func transactionsSection(startDate: Date, endDate: Date, sortType: HistoryView.SortType) -> some View {
         let transactions: [Transaction] = transactionService.getTransactions(start: startDate, end: endDate, direction: direction)
         
         let sortedTransactions = sortTransactions(transactions, sortType)
@@ -47,19 +66,12 @@ struct TransactionsView {
         }
     }
     
-    private func sortTransactions(_ transactions: [Transaction], _ sortType: SortType) -> [Transaction] {
+    private func sortTransactions(_ transactions: [Transaction], _ sortType: HistoryView.SortType) -> [Transaction] {
         switch sortType {
             case .date:
                 return transactions.sorted { $0.transactionDate > $1.transactionDate }
             case .amount:
                 return transactions.sorted { $0.amount > $1.amount }
         }
-    }
-}
-
-extension TransactionsView{
-    enum SortType: String, CaseIterable {
-        case date = "дате"
-        case amount = "сумме"
     }
 }

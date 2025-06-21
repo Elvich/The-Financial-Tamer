@@ -10,14 +10,19 @@ import SwiftUI
 struct TransactionsListView: View {
     
     let direction: Direction
-    var transactionService = TransactionsService()
+    let transactionsView : TransactionsView
+    
+    init(direction: Direction) {
+        self.direction = direction
+        transactionsView = TransactionsView(direction: direction)
+    }
     
     var body: some View {
         NavigationStack {
             VStack() {
                 List{
-                    totalRowView()
-                    transactionsSection()
+                    transactionsView.totalRowView()
+                    transactionsView.transactionsSection()
                 }
                 .padding(.bottom)
             }
@@ -38,34 +43,6 @@ struct TransactionsListView: View {
         (direction == .outcome ? "Расходы" : "Доходы") + " сегодня"
     }
     
-    @ViewBuilder
-    private func totalRowView() -> some View {
-        let transactions = transactionService.getTransactions(direction)
-        let totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
-        
-        HStack() {
-            Text("Всего")
-            Spacer()
-            Text("\(totalAmount) $")
-        }
-    }
-    
-    @ViewBuilder
-    private func transactionsSection() -> some View {
-        let transactions: [Transaction] = transactionService.getTransactions(direction)
-        
-        Section(header: Text("Операции")) {
-            ForEach(transactions, id: \.self) { transition in
-                NavigationLink(destination: ErrorView()) {
-                    HStack {
-                        Text("\(transition.category.emoji)    \(transition.category.name)")
-                        Spacer()
-                        Text("\(transition.amount) $")
-                    }
-                }
-            }
-        }
-    }
 }
 
 #Preview {
