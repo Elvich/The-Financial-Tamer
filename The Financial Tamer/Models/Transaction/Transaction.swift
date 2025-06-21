@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Transaction{
+struct Transaction: Hashable{
     let id: Int
     let account: BankAccount
     var category: Category
@@ -25,10 +25,8 @@ extension Transaction{
             return nil
         }
         
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
-        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
-
+        let dateService = DateService.shared
+        
         guard let id = dict["id"] as? Int,
               
             let account = BankAccount.parse(jsonObject: dict["account"] as Any),
@@ -37,15 +35,15 @@ extension Transaction{
             let amount = Decimal(string: (dict["amount"] as? String) ?? ""),
               
             let transactionDateString = dict["transactionDate"] as? String,
-            let transactionDate = dateFormatter.date(from: transactionDateString),
+            let transactionDate = dateService.toDate(from: transactionDateString),
               
             let comment = dict["comment"] as? String,
               
             let createdAtString = dict["createdAt"] as? String,
-            let createdAt = dateFormatter.date(from: createdAtString),
+            let createdAt = dateService.toDate(from: createdAtString),
               
             let updatedAtString = dict["updatedAt"] as? String,
-            let updatedAt = dateFormatter.date(from: updatedAtString)
+            let updatedAt = dateService.toDate(from: updatedAtString)
         else {
             print("Error parsing Transaction")
             return nil
@@ -65,9 +63,7 @@ extension Transaction{
     
     var jsonObject: [String: Any] {
         
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
-        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+        let dateService = DateService.shared
         
         let value = Decimal(string: "500")!
         let doubleValue = Double(truncating: value as NSNumber)
@@ -78,10 +74,10 @@ extension Transaction{
             "account": self.account,
             "category": self.category,
             "amount": "\(formatted)",
-            "transactionDate": dateFormatter.string(from: self.transactionDate),
+            "transactionDate": dateService.toString(from: self.transactionDate),
             "comment": self.comment,
-            "createdAt": dateFormatter.string(from: self.createdAt),
-            "updatedAt": dateFormatter.string(from: self.updatedAt)
+            "createdAt": dateService.toString(from: self.createdAt),
+            "updatedAt": dateService.toString(from: self.updatedAt)
         ]
     }
 }

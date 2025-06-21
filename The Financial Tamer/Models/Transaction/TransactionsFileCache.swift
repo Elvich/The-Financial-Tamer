@@ -20,7 +20,7 @@ final class TransactionsFileCache {
     }
     
     func add(_ transaction: Transaction) -> Bool {
-        if !transactions.contains(where: { $0.id == transaction.id }) { return false }
+        if transactions.contains(where: { $0.id == transaction.id }) { return false }
         transactions.append(transaction)
         
         Task{
