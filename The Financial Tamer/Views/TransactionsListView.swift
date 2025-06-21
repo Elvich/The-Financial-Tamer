@@ -10,19 +10,17 @@ import SwiftUI
 struct TransactionsListView: View {
     
     let direction: Direction
-    let transactionsView : TransactionsView
     
-    init(direction: Direction) {
-        self.direction = direction
-        transactionsView = TransactionsView(direction: direction)
+    private var title: String {
+        (direction == .outcome ? "Расходы" : "Доходы") + " сегодня"
     }
     
     var body: some View {
         NavigationStack {
-            VStack() {
-                List{
-                    transactionsView.totalRowView()
-                    transactionsView.transactionsSection()
+            VStack {
+                List {
+                    TransactionsView(direction: direction).totalRowView()
+                    TransactionsView(direction: direction).transactionsSection()
                 }
                 .padding(.bottom)
             }
@@ -37,12 +35,6 @@ struct TransactionsListView: View {
             }
         }
     }
-    
-    
-    private var title: String {
-        (direction == .outcome ? "Расходы" : "Доходы") + " сегодня"
-    }
-    
 }
 
 #Preview {
