@@ -14,7 +14,7 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
-            Tab("Расходы", image: "Expenses") {
+            Tab("Расходы", image: "Outcome") {
                 TransactionsListView(direction: .outcome)
             }
 
