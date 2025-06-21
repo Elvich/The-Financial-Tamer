@@ -22,10 +22,6 @@ extension BankAccount{
         guard let dict = jsonObject as? [String: Any] else {
             return nil
         }
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
-        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
 
         guard let id = dict["id"] as? Int,
               let userId = dict["userId"] as? Int,
@@ -36,10 +32,10 @@ extension BankAccount{
               let currency = dict["currency"] as? String,
               
               let createdAtString = dict["createdAt"] as? String,
-              let createdAt = dateFormatter.date(from: createdAtString),
+              let createdAt = DateService.shared.toDate(from: createdAtString),
               
               let updatedAtString = dict["updatedAt"] as? String,
-              let updatedAt = dateFormatter.date(from: updatedAtString)
+              let updatedAt = DateService.shared.toDate(from: updatedAtString)
         else {
             print("Error parsing Transaction")
             return nil

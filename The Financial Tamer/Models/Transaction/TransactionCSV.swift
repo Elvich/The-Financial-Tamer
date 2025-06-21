@@ -29,8 +29,6 @@ extension Transaction{
             return nil
         }
         
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
         
         guard components.count == 8 else {
             throw ParseError.missingComponents
@@ -49,17 +47,17 @@ extension Transaction{
             throw ParseError.invalidAmount
         }
         
-        guard let transactionDate = dateFormatter.date(from: components[4]) else {
+        guard let transactionDate = DateService.shared.toDate(from: components[4]) else {
             throw ParseError.invalidDate("transactionDate")
         }
 
         let comment = components[5]
         
-        guard let createdAt = dateFormatter.date(from: components[6]) else {
+        guard let createdAt = DateService.shared.toDate(from: components[6]) else {
             throw ParseError.invalidDate("createdAt")
         }
 
-        guard let updatedAt = dateFormatter.date(from: components[7]) else {
+        guard let updatedAt = DateService.shared.toDate(from: components[7]) else {
             throw ParseError.invalidDate("updatedAt")
         }
         

@@ -25,10 +25,6 @@ extension Transaction{
             return nil
         }
         
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
-        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
-
         guard let id = dict["id"] as? Int,
               
             let account = BankAccount.parse(jsonObject: dict["account"] as Any),
@@ -37,15 +33,15 @@ extension Transaction{
             let amount = Decimal(string: (dict["amount"] as? String) ?? ""),
               
             let transactionDateString = dict["transactionDate"] as? String,
-            let transactionDate = dateFormatter.date(from: transactionDateString),
+            let transactionDate = DateService.shared.toDate(from: transactionDateString),
               
             let comment = dict["comment"] as? String,
               
             let createdAtString = dict["createdAt"] as? String,
-            let createdAt = dateFormatter.date(from: createdAtString),
+            let createdAt = DateService.shared.toDate(from: createdAtString),
               
             let updatedAtString = dict["updatedAt"] as? String,
-            let updatedAt = dateFormatter.date(from: updatedAtString)
+            let updatedAt = DateService.shared.toDate(from: updatedAtString)
         else {
             print("Error parsing Transaction")
             return nil
@@ -65,10 +61,6 @@ extension Transaction{
     
     var jsonObject: [String: Any] {
         
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
-        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
-        
         let value = Decimal(string: "500")!
         let doubleValue = Double(truncating: value as NSNumber)
         let formatted = String(format: "%.2f", doubleValue)
@@ -78,10 +70,10 @@ extension Transaction{
             "account": self.account,
             "category": self.category,
             "amount": "\(formatted)",
-            "transactionDate": dateFormatter.string(from: self.transactionDate),
+            "transactionDate": DateService.shared.toString(from: self.transactionDate),
             "comment": self.comment,
-            "createdAt": dateFormatter.string(from: self.createdAt),
-            "updatedAt": dateFormatter.string(from: self.updatedAt)
+            "createdAt": DateService.shared.toString(from: self.createdAt),
+            "updatedAt": DateService.shared.toString(from: self.updatedAt)
         ]
     }
 }
