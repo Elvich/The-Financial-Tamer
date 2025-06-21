@@ -17,20 +17,15 @@ struct HistoryView: View {
     @State private var startDate = Date()
     @State private var endDate = Date()
     
-    private let calendar = Calendar.current
+    let dateService = DateService.shared
 
     init(direction: Direction) {
         self.direction = direction
-        
-        let now = Date()
-        let endOfDay = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: now)!
                 
-        let monthAgo = calendar.date(byAdding: .month, value: -1, to: now)!
-                
-        let startOfDayMonthAgo = calendar.startOfDay(for: monthAgo)
+        let monthAgo = dateService.calendar.date(byAdding: .month, value: -1, to: dateService.now)!
             
-        _startDate = State(initialValue: startOfDayMonthAgo)
-        _endDate = State(initialValue: endOfDay)
+        _startDate = State(initialValue: dateService.startOfDay(date: monthAgo))
+        _endDate = State(initialValue: dateService.endOfDay())
     }
     
     var body: some View {

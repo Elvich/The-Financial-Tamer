@@ -14,7 +14,7 @@ final class DateService {
     let dateFormatter: DateFormatter
     let calendar : Calendar
     
-    private let now: Date = Date()
+    let now: Date = Date()
     
     init(){
         dateFormatter = DateFormatter()

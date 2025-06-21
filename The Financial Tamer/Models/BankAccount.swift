@@ -22,6 +22,8 @@ extension BankAccount{
         guard let dict = jsonObject as? [String: Any] else {
             return nil
         }
+        
+        let dateService = DateService.shared
 
         guard let id = dict["id"] as? Int,
               let userId = dict["userId"] as? Int,
@@ -32,10 +34,10 @@ extension BankAccount{
               let currency = dict["currency"] as? String,
               
               let createdAtString = dict["createdAt"] as? String,
-              let createdAt = DateService.shared.toDate(from: createdAtString),
+              let createdAt = dateService.toDate(from: createdAtString),
               
               let updatedAtString = dict["updatedAt"] as? String,
-              let updatedAt = DateService.shared.toDate(from: updatedAtString)
+              let updatedAt = dateService.toDate(from: updatedAtString)
         else {
             print("Error parsing Transaction")
             return nil

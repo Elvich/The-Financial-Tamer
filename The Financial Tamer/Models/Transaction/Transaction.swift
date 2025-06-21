@@ -25,6 +25,8 @@ extension Transaction{
             return nil
         }
         
+        let dateService = DateService.shared
+        
         guard let id = dict["id"] as? Int,
               
             let account = BankAccount.parse(jsonObject: dict["account"] as Any),
@@ -33,15 +35,15 @@ extension Transaction{
             let amount = Decimal(string: (dict["amount"] as? String) ?? ""),
               
             let transactionDateString = dict["transactionDate"] as? String,
-            let transactionDate = DateService.shared.toDate(from: transactionDateString),
+            let transactionDate = dateService.toDate(from: transactionDateString),
               
             let comment = dict["comment"] as? String,
               
             let createdAtString = dict["createdAt"] as? String,
-            let createdAt = DateService.shared.toDate(from: createdAtString),
+            let createdAt = dateService.toDate(from: createdAtString),
               
             let updatedAtString = dict["updatedAt"] as? String,
-            let updatedAt = DateService.shared.toDate(from: updatedAtString)
+            let updatedAt = dateService.toDate(from: updatedAtString)
         else {
             print("Error parsing Transaction")
             return nil
@@ -61,6 +63,8 @@ extension Transaction{
     
     var jsonObject: [String: Any] {
         
+        let dateService = DateService.shared
+        
         let value = Decimal(string: "500")!
         let doubleValue = Double(truncating: value as NSNumber)
         let formatted = String(format: "%.2f", doubleValue)
@@ -70,10 +74,10 @@ extension Transaction{
             "account": self.account,
             "category": self.category,
             "amount": "\(formatted)",
-            "transactionDate": DateService.shared.toString(from: self.transactionDate),
+            "transactionDate": dateService.toString(from: self.transactionDate),
             "comment": self.comment,
-            "createdAt": DateService.shared.toString(from: self.createdAt),
-            "updatedAt": DateService.shared.toString(from: self.updatedAt)
+            "createdAt": dateService.toString(from: self.createdAt),
+            "updatedAt": dateService.toString(from: self.updatedAt)
         ]
     }
 }
