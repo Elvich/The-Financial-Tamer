@@ -63,20 +63,20 @@ struct HistoryView: View {
                 .fill(Color.accentColor.opacity(0.12)))
                 .foregroundColor(.primary)
                 .onChange(of: startDate) { _, newDate in
-                    endDate = newDate > endDate ? newDate : endDate
+                    endDate = newDate > endDate ? dateService.startOfDay(date: newDate) : endDate
                 }
         }
         
         HStack() {
-            Text("Конеч")
+            Text("Конец")
             Spacer()
-            DatePicker("", selection: $endDate, displayedComponents: .hourAndMinute)
+            DatePicker("", selection: $endDate, displayedComponents: .date)
                 .labelsHidden()
                 .background(RoundedRectangle(cornerRadius: 8)
                 .fill(Color.accentColor.opacity(0.12)))
                 .foregroundColor(.primary)
                 .onChange(of: endDate) { _, newDate in
-                   startDate = newDate < startDate ? newDate : startDate
+                    startDate = newDate < startDate ?  dateService.endOfDay(date: newDate) : startDate
                 }
         }
         
