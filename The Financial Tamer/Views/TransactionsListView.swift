@@ -17,18 +17,16 @@ struct TransactionsListView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
-                List {
-                    TransactionsView(direction: direction).totalRowView()
-                    TransactionsView(direction: direction).transactionsSection()
-                }
-                .padding(.bottom)
+            List {
+                TransactionsView(direction: direction).totalRowView()
+                TransactionsView(direction: direction).transactionsSection()
             }
+            .padding(.bottom)
             .navigationTitle(title)
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    NavigationLink(destination: HistoryView(direction: direction)) {
-                        Image(systemName: "clock")
+            ToolbarItem(placement: .primaryAction) {
+                NavigationLink(destination: HistoryView(direction: direction)) {
+                    Image(systemName: "clock")
                             .foregroundColor(.purple)
                     }
                 }
