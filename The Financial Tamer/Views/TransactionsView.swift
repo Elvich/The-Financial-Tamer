@@ -10,7 +10,7 @@ import SwiftUI
 struct TransactionsView {
     
     private let transactionService: TransactionsService = TransactionsService()
-    private let dateService = DateService.shared
+    private let dateService = DateService()
     
     let direction: Direction
     

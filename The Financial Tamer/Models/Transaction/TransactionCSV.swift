@@ -47,17 +47,17 @@ extension Transaction{
             throw ParseError.invalidAmount
         }
         
-        guard let transactionDate = DateService.shared.toDate(from: components[4]) else {
+        guard let transactionDate = DateService().toDate(from: components[4]) else {
             throw ParseError.invalidDate("transactionDate")
         }
 
         let comment = components[5]
         
-        guard let createdAt = DateService.shared.toDate(from: components[6]) else {
+        guard let createdAt = DateService().toDate(from: components[6]) else {
             throw ParseError.invalidDate("createdAt")
         }
 
-        guard let updatedAt = DateService.shared.toDate(from: components[7]) else {
+        guard let updatedAt = DateService().toDate(from: components[7]) else {
             throw ParseError.invalidDate("updatedAt")
         }
         

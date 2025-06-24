@@ -17,7 +17,7 @@ struct HistoryView: View {
     @State private var startDate = Date()
     @State private var endDate = Date()
     
-    let dateService = DateService.shared
+    let dateService = DateService()
     let transactionsView: TransactionsView
 
     init(direction: Direction) {

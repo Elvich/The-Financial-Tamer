@@ -9,8 +9,6 @@ import Foundation
 
 final class DateService {
     
-    static let shared = DateService()
-    
     let dateFormatter: DateFormatter
     let calendar : Calendar
     
