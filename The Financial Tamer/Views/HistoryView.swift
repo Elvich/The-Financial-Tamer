@@ -33,13 +33,11 @@ struct HistoryView: View {
     
     var body: some View {
         NavigationStack{
-            VStack{
-                List{
-                    transactionsSettingsSection()
-                    transactionsView.transactionsSection(startDate: startDate, endDate: endDate, sortType: sortType)
-                }
-                .padding(.bottom)
+            List{
+                transactionsSettingsSection()
+                transactionsView.transactionsSection(startDate: startDate, endDate: endDate, sortType: sortType)
             }
+            .padding(.bottom)
         }
         .navigationTitle("Моя история")
         .toolbar {
