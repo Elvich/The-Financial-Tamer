@@ -89,7 +89,7 @@ struct HistoryView: View {
             }
         }
         
-        transactionsView.totalRowView(text: "Сумма")
+        transactionsView.totalRowView(startDate: startDate, endDate: endDate ,text: "Сумма")
         
     }
 

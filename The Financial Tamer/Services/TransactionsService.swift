@@ -31,22 +31,6 @@ final class TransactionsService {
         return transactions.filter{ $0.transactionDate >= start && $0.transactionDate <= end }
     }
 
-    
-    func getTransactions() -> [Transaction] {
-        let calendar = Calendar.current
-        return transactions.filter {
-            calendar.isDate($0.transactionDate, inSameDayAs: Date())
-        }
-    }
-    
-    func getTransactions(_ direction: Direction) -> [Transaction] {
-        let calendar = Calendar.current
-        let transactions: [Transaction] = self.transactions.filter { $0.category.direction == direction }
-        return transactions.filter {
-            calendar.isDate($0.transactionDate, inSameDayAs: Date())
-        }
-    }
-
     func add(_ transaction: Transaction) async throws -> Transaction {
         transactions.append(transaction)
         return transaction

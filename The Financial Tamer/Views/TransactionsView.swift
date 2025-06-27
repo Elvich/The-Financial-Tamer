@@ -15,8 +15,8 @@ struct TransactionsView {
     let direction: Direction
     
     @ViewBuilder
-    func totalRowView(text:String = "Всего") -> some View {
-        let transactions = transactionService.getTransactions(direction)
+    func totalRowView(startDate: Date = DateService().startOfDay(), endDate: Date =  DateService().endOfDay(), text:String = "Всего") -> some View {
+        let transactions = transactionService.getTransactions(start: startDate, end: endDate, direction: direction)
         let totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
         
         HStack() {
