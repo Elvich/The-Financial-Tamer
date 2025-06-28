@@ -74,6 +74,7 @@ struct AccountView: View {
                             isEditing = true
                         }
                     }
+                    .foregroundColor(.purple)
                 }
             }
             .task {
