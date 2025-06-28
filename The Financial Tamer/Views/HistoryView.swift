@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct HistoryView: View {
-    
+
     let direction: Direction
     var transactionService = TransactionsService()
-    
+
     @State private var sortType: SortType = .date
-    
+
     @State private var startDate = Date()
     @State private var endDate = Date()
-    
+
     let dateService = DateService()
     let transactionsView: TransactionsView
 
@@ -24,18 +24,25 @@ struct HistoryView: View {
         self.direction = direction
         transactionsView = TransactionsView(direction: direction)
 
-                
-        let monthAgo = dateService.calendar.date(byAdding: .month, value: -1, to: dateService.now)!
-            
+        let monthAgo = dateService.calendar.date(
+            byAdding: .month,
+            value: -1,
+            to: dateService.now
+        )!
+
         _startDate = State(initialValue: dateService.startOfDay(date: monthAgo))
         _endDate = State(initialValue: dateService.endOfDay())
     }
-    
+
     var body: some View {
-        NavigationStack{
-            List{
+        NavigationStack {
+            List {
                 transactionsSettingsSection()
-                transactionsView.transactionsSection(startDate: startDate, endDate: endDate, sortType: sortType)
+                transactionsView.transactionsSection(
+                    startDate: startDate,
+                    endDate: endDate,
+                    sortType: sortType
+                )
             }
             .padding(.bottom)
         }
@@ -49,53 +56,65 @@ struct HistoryView: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private func transactionsSettingsSection() -> some View {
-              
-        HStack() {
+
+        HStack {
             Text("Начало")
             Spacer()
-            
+
             DatePicker("", selection: $startDate, displayedComponents: .date)
                 .labelsHidden()
-                .background(RoundedRectangle(cornerRadius: 8)
-                .fill(Color.accentColor.opacity(0.12)))
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.accentColor.opacity(0.12))
+                )
                 .foregroundColor(.primary)
                 .onChange(of: startDate) { _, newDate in
-                    endDate = newDate > endDate ? dateService.startOfDay(date: newDate) : endDate
+                    endDate =
+                        newDate > endDate
+                        ? dateService.startOfDay(date: newDate) : endDate
                 }
         }
-        
-        HStack() {
+
+        HStack {
             Text("Конец")
             Spacer()
             DatePicker("", selection: $endDate, displayedComponents: .date)
                 .labelsHidden()
-                .background(RoundedRectangle(cornerRadius: 8)
-                .fill(Color.accentColor.opacity(0.12)))
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.accentColor.opacity(0.12))
+                )
                 .foregroundColor(.primary)
                 .onChange(of: endDate) { _, newDate in
-                    startDate = newDate < startDate ?  dateService.endOfDay(date: newDate) : startDate
+                    startDate =
+                        newDate < startDate
+                        ? dateService.endOfDay(date: newDate) : startDate
                 }
         }
-        
-        HStack{
-            
+
+        HStack {
+
             Picker("Сортировать по", selection: $sortType) {
                 ForEach(SortType.allCases, id: \.self) { type in
                     Text(type.rawValue).tag(type)
                 }
             }
         }
-        
-        transactionsView.totalRowView(startDate: startDate, endDate: endDate ,text: "Сумма")
-        
+
+        transactionsView.totalRowView(
+            startDate: startDate,
+            endDate: endDate,
+            text: "Сумма"
+        )
+
     }
 
 }
 
-extension HistoryView{
+extension HistoryView {
     enum SortType: String, CaseIterable {
         case date = "дате"
         case amount = "сумме"

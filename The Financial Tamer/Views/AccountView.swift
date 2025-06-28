@@ -13,10 +13,9 @@ struct AccountView: View {
     @State private var errorMessage: String?
     @State private var isEditing = false
 
-    
     private let bankAccountsService = BankAccountsService()
     private let currencyService = CurrencyService()
-    
+
     var body: some View {
         NavigationView {
             VStack {
@@ -44,18 +43,22 @@ struct AccountView: View {
                                 Text("Баланс")
                                 Spacer()
 
-                                    Text("\(NSDecimalNumber(decimal: account.balance).doubleValue, specifier: "%.2f") \(currencyService.getSymbol(for: account.currency))")
-                                
+                                Text(
+                                    "\(NSDecimalNumber(decimal: account.balance).doubleValue, specifier: "%.2f") \(currencyService.getSymbol(for: account.currency))"
+                                )
+
                             }
                             .contentShape(Rectangle())
                         }
                         .listRowBackground(Color.accentColor)
-                        
+
                         Section {
                             HStack {
                                 Text("Валюта")
                                 Spacer()
-                                Text("\(currencyService.getSymbol(for: account.currency))")
+                                Text(
+                                    "\(currencyService.getSymbol(for: account.currency))"
+                                )
                             }
                             .contentShape(Rectangle())
                         }
@@ -82,21 +85,21 @@ struct AccountView: View {
             }
         }
     }
-    
+
     private func loadAccount() async {
         isLoading = true
         errorMessage = nil
-        
+
         do {
             account = try await bankAccountsService.getAccount()
         } catch {
             errorMessage = error.localizedDescription
         }
-        
+
         isLoading = false
     }
 }
 
 #Preview {
     AccountView()
-} 
+}
