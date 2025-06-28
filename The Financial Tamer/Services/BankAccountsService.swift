@@ -34,5 +34,10 @@ final class BankAccountsService {
 
         return account
     }
+    
+    func update(from account: inout BankAccount) async throws {
+        account.updatedAt = Date()
+        bankAccounts[account.id] = account
+    }
 }
 

@@ -25,7 +25,7 @@ extension Transaction{
             return nil
         }
         
-        let dateService = DateService.shared
+        let dateService = DateService()
         
         guard let id = dict["id"] as? Int,
               
@@ -63,7 +63,7 @@ extension Transaction{
     
     var jsonObject: [String: Any] {
         
-        let dateService = DateService.shared
+        let dateService = DateService()
         
         let value = Decimal(string: "500")!
         let doubleValue = Double(truncating: value as NSNumber)

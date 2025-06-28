@@ -23,7 +23,7 @@ extension BankAccount{
             return nil
         }
         
-        let dateService = DateService.shared
+        let dateService = DateService()
 
         guard let id = dict["id"] as? Int,
               let userId = dict["userId"] as? Int,
