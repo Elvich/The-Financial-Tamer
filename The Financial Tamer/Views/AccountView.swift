@@ -15,6 +15,7 @@ struct AccountView: View {
     @State private var editingBalance = ""
     @State private var editingCurrency = ""
     @State private var isKeyboardVisible = false
+    @State private var showCurrencyDialog = false
 
     private let bankAccountsService = BankAccountsService()
     private let currencyService = CurrencyService()
@@ -38,10 +39,20 @@ struct AccountView: View {
                                             .keyboardType(.decimalPad)
                                             .multilineTextAlignment(.trailing)
                                             .onAppear {
-                                                editingBalance = String(format: "%.2f", NSDecimalNumber(decimal: newAccount.balance).doubleValue)
+                                                editingBalance = String(
+                                                    format: "%.2f",
+                                                    NSDecimalNumber(
+                                                        decimal: newAccount
+                                                            .balance
+                                                    ).doubleValue
+                                                )
                                             }
-                                            .onChange(of: editingBalance) { oldValue, newValue in
-                                                updateNewAccountBalance(newValue)
+                                            .onChange(of: editingBalance) {
+                                                oldValue,
+                                                newValue in
+                                                updateNewAccountBalance(
+                                                    newValue
+                                                )
                                             }
                                             .onSubmit {
                                                 hideKeyboard()
@@ -64,7 +75,7 @@ struct AccountView: View {
                     Section {
                         Button(action: {
                             if isEditing {
-
+                                showCurrencyDialog = true
                             }
                         }) {
                             HStack {
@@ -84,6 +95,29 @@ struct AccountView: View {
                             }
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .confirmationDialog(
+                            "Валюта",
+                            isPresented: $showCurrencyDialog,
+                            titleVisibility: .visible
+                        ) {
+                            ForEach(["RUB", "USD", "EUR"], id: \.self) { code in
+                                let name =
+                                    code == "RUB"
+                                    ? "Российский рубль"
+                                    : code == "USD"
+                                        ? "Американский доллар" : "Евро"
+                                let symbol = currencyService.getSymbol(
+                                    for: code
+                                )
+                                Button("\(name) \(symbol)") {
+                                    if isEditing, var newAccount = newAccount {
+                                        newAccount.currency = code
+                                        self.newAccount = newAccount
+                                    }
+                                }
+                            }
+                        }
+                        .tint(.purple)
                     }
                     .listRowBackground(Color.accentColor.opacity(0.12))
                 }
@@ -138,11 +172,14 @@ struct AccountView: View {
             newAccount = account
             // Инициализируем поля редактирования
             if let account = account {
-                editingBalance = String(format: "%.2f", NSDecimalNumber(decimal: account.balance).doubleValue)
+                editingBalance = String(
+                    format: "%.2f",
+                    NSDecimalNumber(decimal: account.balance).doubleValue
+                )
                 editingCurrency = account.currency
             }
         }
-        
+
         isEditing = !isEditing
     }
 
@@ -156,7 +193,12 @@ struct AccountView: View {
     }
 
     private func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
         isKeyboardVisible = false
     }
 
