@@ -25,50 +25,28 @@ struct AccountView: View {
             if let account = account {
                 List {
                     Section {
-                        Button(action: {
+                        HStack {
+                            Text("Баланс")
+                            Spacer()
                             if isEditing {
-
-                            }
-                        }) {
-                            HStack {
-                                Text("Баланс")
-                                Spacer()
-                                if isEditing {
-                                    if let newAccount = newAccount {
-                                        TextField("0.00", text: $editingBalance)
-                                            .keyboardType(.decimalPad)
-                                            .multilineTextAlignment(.trailing)
-                                            .onAppear {
-                                                editingBalance = String(
-                                                    format: "%.2f",
-                                                    NSDecimalNumber(
-                                                        decimal: newAccount
-                                                            .balance
-                                                    ).doubleValue
-                                                )
-                                            }
-                                            .onChange(of: editingBalance) {
-                                                oldValue,
-                                                newValue in
-                                                updateNewAccountBalance(
-                                                    newValue
-                                                )
-                                            }
-                                            .onSubmit {
-                                                hideKeyboard()
-                                            }
-                                            .onTapGesture {
-                                                // Позволяет скрыть клавиатуру при тапе вне поля
-                                            }
+                                TextField("0.00", text: $editingBalance)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .onAppear {
+                                        editingBalance = String(format: "%.2f", NSDecimalNumber(decimal: newAccount?.balance ?? 0).doubleValue)
                                     }
-                                } else {
-                                    Text(
-                                        "\(NSDecimalNumber(decimal: account.balance).doubleValue, specifier: "%.2f") \(currencyService.getSymbol(for: account.currency))"
-                                    )
-                                }
+                                    .onChange(of: editingBalance) { oldValue, newValue in
+                                        updateNewAccountBalance(newValue)
+                                    }
+                                    .onSubmit {
+                                        hideKeyboard()
+                                    }
+                            } else {
+                                Text(
+                                    "\(String(format: "%.2f", NSDecimalNumber(decimal: account.balance).doubleValue)) \(currencyService.getSymbol(for: account.currency))"
+                                )
                             }
                         }
-                        .buttonStyle(PlainButtonStyle())
                     }
                     .listRowBackground(Color.accentColor)
 
