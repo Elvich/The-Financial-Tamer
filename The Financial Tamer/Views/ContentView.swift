@@ -22,7 +22,7 @@ struct ContentView: View {
             
             
             Tab("Счет", image: "Account") {
-                ErrorView()
+                AccountView()
             }
             
             

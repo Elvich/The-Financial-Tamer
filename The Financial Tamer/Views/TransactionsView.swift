@@ -11,6 +11,7 @@ struct TransactionsView {
     
     private let transactionService: TransactionsService = TransactionsService()
     private let dateService = DateService()
+    private let currencyService = CurrencyService()
     
     let direction: Direction
     
@@ -22,7 +23,7 @@ struct TransactionsView {
         HStack() {
             Text(text)
             Spacer()
-            Text("\(totalAmount) $")
+            Text("\(totalAmount) \(currencyService.getSymbol(for: transactions[0].account.currency))")
         }
     }
     
@@ -40,7 +41,7 @@ struct TransactionsView {
                     HStack {
                         Text("\(transition.category.emoji)    \(transition.category.name)")
                         Spacer()
-                        Text("\(transition.amount) $")
+                        Text("\(transition.amount) \(currencyService.getSymbol(for: transition.account.currency))")
                     }
                 }
             }
