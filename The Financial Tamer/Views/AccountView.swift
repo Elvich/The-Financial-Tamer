@@ -134,18 +134,22 @@ struct AccountView: View {
         }
     }
 
-    private func changeState() {
-        if isEditing {
-            Task {
-                if var newAccount = newAccount {
-                    do {
-                        try await bankAccountsService.update(from: &newAccount)
-                        await loadAccount()
-                    } catch {
-                        print(error.localizedDescription)
-                    }
+    fileprivate func pullToRefresh() {
+        Task {
+            if var newAccount = newAccount {
+                do {
+                    try await bankAccountsService.update(from: &newAccount)
+                    await loadAccount()
+                } catch {
+                    print(error.localizedDescription)
                 }
             }
+        }
+    }
+    
+    private func changeState() {
+        if isEditing {
+            pullToRefresh()
         } else {
             newAccount = account
             // Инициализируем поля редактирования
