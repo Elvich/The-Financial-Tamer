@@ -49,7 +49,7 @@ struct CategoryView: View {
             }
             .padding(.bottom)
             .navigationTitle("Мои статьи")
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск по названию или эмодзи")
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск")
             .task {
                 categories = await service.categories()
             }
