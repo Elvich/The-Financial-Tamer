@@ -41,13 +41,16 @@ struct CategoryView: View {
     
     var body: some View {
         NavigationStack {
-            List(filteredCategories, id: \ .id) { category in
-                HStack {
-                    Text(String(category.emoji))
-                    Text(category.name)
+            List {
+                Section(header: Text("Статьи")) {
+                    ForEach(filteredCategories, id: \ .id) { category in
+                        HStack {
+                            Text(String(category.emoji))
+                            Text(category.name)
+                        }
+                    }
                 }
             }
-            .padding(.bottom)
             .navigationTitle("Мои статьи")
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск")
             .task {
