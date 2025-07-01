@@ -8,8 +8,25 @@
 import SwiftUI
 
 struct CategoryView: View {
+    @State private var categories: [Category] = []
+    private let service = CategoriesService()
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationStack {
+            List(categories, id: \ .id) { category in
+                HStack {
+                    Text(String(category.emoji))
+                        
+                    Text(category.name)
+                        
+                }
+            }
+            .padding(.bottom)
+            .navigationTitle("Мои статьи")
+            .task {
+                categories = await service.categories()
+            }
+        }
     }
 }
 
