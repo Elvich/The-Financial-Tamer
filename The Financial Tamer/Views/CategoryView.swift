@@ -12,12 +12,28 @@ struct CategoryView: View {
     @State private var searchText: String = ""
     private let service = CategoriesService()
     
+    func fuzzyMatch(_ pattern: String, in text: String) -> Bool {
+        if pattern.isEmpty { return true }
+        var patternIdx = pattern.startIndex
+        let lowerText = text.lowercased()
+        let lowerPattern = pattern.lowercased()
+        for char in lowerText {
+            if char == lowerPattern[patternIdx] {
+                patternIdx = lowerPattern.index(after: patternIdx)
+                if patternIdx == lowerPattern.endIndex {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+    
     var filteredCategories: [Category] {
         if searchText.isEmpty {
             return categories
         } else {
             return categories.filter { category in
-                category.name.localizedCaseInsensitiveContains(searchText) ||
+                fuzzyMatch(searchText, in: category.name) ||
                 String(category.emoji).localizedCaseInsensitiveContains(searchText)
             }
         }
