@@ -27,7 +27,7 @@ struct ContentView: View {
             
             
             Tab("Статьи", image: "Articles") {
-                ErrorView()
+                CategoryView()
             }
 
 
