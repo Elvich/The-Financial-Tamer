@@ -51,6 +51,7 @@ struct CategoryView: View {
                     }
                 }
             }
+            .padding(.bottom)
             .navigationTitle("Мои статьи")
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск")
             .task {
