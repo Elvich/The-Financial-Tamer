@@ -49,7 +49,12 @@ struct HistoryView: View {
         .navigationTitle("Моя история")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                NavigationLink(destination: ErrorView()) {
+                NavigationLink(destination: AnalysisViewControllerWrapper(direction: direction)
+                    .navigationTitle("Анализ")
+                    .navigationBarTitleDisplayMode(.large)
+                    .toolbarBackground(Color(.systemGroupedBackground), for: .navigationBar)
+                    .toolbarBackground(.visible, for: .navigationBar)
+                ) {
                     Image(systemName: "document")
                         .foregroundColor(.purple)
                 }
