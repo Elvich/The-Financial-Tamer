@@ -9,6 +9,7 @@ import SwiftUI
 import UIKit
 
 struct AccountView: View {
+    @ObservedObject var bankAccountsService: BankAccountsService
     @State private var account: BankAccount?
 
     @State private var isEditing = false
@@ -20,7 +21,6 @@ struct AccountView: View {
     @State private var balanceSpoiler = false
     @State private var showCurrencyDialog = false
 
-    private let bankAccountsService = BankAccountsService()
     private let currencyService = CurrencyService()
 
     var body: some View {
@@ -270,7 +270,7 @@ struct AccountView: View {
 }
 
 #Preview {
-    AccountView()
+    AccountView(bankAccountsService: BankAccountsService())
 }
 
 // MARK: - Shake gesture support for SwiftUI

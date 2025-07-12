@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct TransactionsView {
-
-    private let transactionService: TransactionsService = TransactionsService()
+    
     private let dateService = DateService()
     private let currencyService = CurrencyService()
 
+    let transactionService: TransactionsService
     let direction: Direction
 
     @ViewBuilder
@@ -41,7 +41,8 @@ struct TransactionsView {
     func transactionsSection(
         startDate: Date = DateService().startOfDay(),
         endDate: Date = DateService().endOfDay(),
-        sortType: HistoryView.SortType = .date
+        sortType: HistoryView.SortType = .date,
+        onTransactionTap: @escaping (Transaction) -> Void
     ) -> some View {
         let transactions: [Transaction] = transactionService.getTransactions(
             start: startDate,
@@ -53,7 +54,9 @@ struct TransactionsView {
 
         Section(header: Text("Операции")) {
             ForEach(sortedTransactions, id: \.self) { transition in
-                NavigationLink(destination: ErrorView()) {
+                Button(action: {
+                    onTransactionTap(transition)
+                }) {
                     HStack {
                         Text(
                             "\(transition.category.emoji)    \(transition.category.name)"
@@ -64,6 +67,7 @@ struct TransactionsView {
                         )
                     }
                 }
+                .buttonStyle(PlainButtonStyle())
             }
         }
     }

@@ -6,10 +6,10 @@
 //
 
 import Foundation
+import Combine
 
-final class TransactionsService {
-
-    private var transactions: [Transaction] = [
+final class TransactionsService: ObservableObject {
+    @Published private(set) var transactions: [Transaction] = [
         Transaction(
             id: 0,
             account: BankAccount(
@@ -107,29 +107,25 @@ final class TransactionsService {
         ),
     ]
 
-    func getTransactions(_ start: Date, _ end: Date) async throws
-        -> [Transaction]
-    {
+    func getTransactions(_ start: Date, _ end: Date) async throws -> [Transaction] {
         return transactions.filter {
             $0.transactionDate >= start && $0.transactionDate <= end
         }
     }
 
-    func getTransactions(start: Date, end: Date, direction: Direction)
-        -> [Transaction]
-    {
-
-        let transactions: [Transaction] = self.transactions.filter {
+    func getTransactions(start: Date, end: Date, direction: Direction) -> [Transaction] {
+        let filtered: [Transaction] = self.transactions.filter {
             $0.category.direction == direction
         }
-
-        return transactions.filter {
+        return filtered.filter {
             $0.transactionDate >= start && $0.transactionDate <= end
         }
     }
 
     func add(_ transaction: Transaction) async throws -> Transaction {
-        transactions.append(transaction)
+        await MainActor.run {
+            transactions.append(transaction)
+        }
         return transaction
     }
 
@@ -145,20 +141,20 @@ final class TransactionsService {
                 userInfo: [NSLocalizedDescriptionKey: "Transaction not found"]
             )
         }
-
         var transaction = transactions[index]
-
         transaction[keyPath: keyPath] = value
         transaction.updatedAt = Date()
-
-        transactions[index] = transaction
-
+        await MainActor.run {
+            transactions[index] = transaction
+        }
         return transaction
     }
 
     func delete(id: Int) async -> Bool {
         if let index = transactions.firstIndex(where: { $0.id == id }) {
-            transactions.remove(at: index)
+            await MainActor.run {
+                transactions.remove(at: index)
+            }
             return true
         } else {
             return false

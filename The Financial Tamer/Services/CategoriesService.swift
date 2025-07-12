@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class CategoriesService {
+final class CategoriesService: ObservableObject {
     
     private let categories: [Category] = [
         Category(id: 0, name: "Маркет", emoji: "🚚", direction: .outcome),
