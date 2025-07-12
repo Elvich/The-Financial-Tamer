@@ -196,7 +196,7 @@ extension AnalysisViewController: UITableViewDataSource {
                 self?.showDatePicker(
                     date: self?.startDate ?? Date(),
                     minimumDate: nil,
-                    maximumDate: self?.endDate,
+                    maximumDate: nil,
                     onDateSelected: { [weak self] date in
                         self?.updateDateRange(start: date, end: self?.endDate ?? date)
                         self?.tableView.reloadData()
@@ -206,7 +206,7 @@ extension AnalysisViewController: UITableViewDataSource {
             onShowEndPicker: { [weak self] in
                 self?.showDatePicker(
                     date: self?.endDate ?? Date(),
-                    minimumDate: self?.startDate,
+                    minimumDate: nil,
                     maximumDate: nil,
                     onDateSelected: { [weak self] date in
                         self?.updateDateRange(start: self?.startDate ?? date, end: date)
