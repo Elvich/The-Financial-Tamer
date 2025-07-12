@@ -8,21 +8,27 @@
 import SwiftUI
 
 struct HistoryView: View {
-
     let direction: Direction
-    var transactionService = TransactionsService()
+    @ObservedObject var transactionsService: TransactionsService
+    @ObservedObject var categoriesService: CategoriesService
+    @ObservedObject var bankAccountsService: BankAccountsService
 
     @State private var sortType: SortType = .date
-
     @State private var startDate = Date()
     @State private var endDate = Date()
+    @State private var showingEditTransaction = false
+    @State private var selectedTransaction: Transaction?
 
     let dateService = DateService()
     let transactionsView: TransactionsView
 
-    init(direction: Direction) {
+    init(direction: Direction, transactionsService: TransactionsService, categoriesService: CategoriesService, bankAccountsService: BankAccountsService) {
         self.direction = direction
-        transactionsView = TransactionsView(direction: direction)
+        transactionsView = TransactionsView(transactionService: transactionsService, direction: direction)
+        self.transactionsService = transactionsService
+        self.categoriesService = categoriesService
+        self.bankAccountsService = bankAccountsService
+        
 
         let monthAgo = dateService.calendar.date(
             byAdding: .month,
@@ -38,21 +44,41 @@ struct HistoryView: View {
         NavigationStack {
             List {
                 transactionsSettingsSection()
-                transactionsView.transactionsSection(
-                    startDate: startDate,
-                    endDate: endDate,
-                    sortType: sortType
-                )
+                Section(header: Text("Операции")) {
+                    ForEach(filteredTransactions) { transaction in
+                        Button(action: {
+                            selectedTransaction = transaction
+                            showingEditTransaction = true
+                        }) {
+                            HStack {
+                                Text("\(transaction.category.emoji)    \(transaction.category.name)")
+                                Spacer()
+                                Text("\(transaction.amount) RUB")
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
             }
             .padding(.bottom)
         }
         .navigationTitle("Моя история")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                NavigationLink(destination: ErrorView()) {
+                NavigationLink(destination: AnalysisViewControllerWrapper(direction: direction)
+                    .navigationTitle("Анализ")
+                    .navigationBarTitleDisplayMode(.large)
+                    .toolbarBackground(Color(.systemGroupedBackground), for: .navigationBar)
+                    .toolbarBackground(.visible, for: .navigationBar)
+                ) {
                     Image(systemName: "document")
                         .foregroundColor(.purple)
                 }
+            }
+        }
+        .sheet(isPresented: $showingEditTransaction) {
+            if let transaction = selectedTransaction {
+                TransactionEditView(mode: .edit, direction: direction, transaction: transaction, transactionsService: transactionsService, categoriesService: categoriesService, bankAccountsService: bankAccountsService)
             }
         }
     }
@@ -112,6 +138,10 @@ struct HistoryView: View {
 
     }
 
+    private var filteredTransactions: [Transaction] {
+        transactionsService.transactions.filter { $0.category.direction == direction }
+    }
+
 }
 
 extension HistoryView {
@@ -122,5 +152,9 @@ extension HistoryView {
 }
 
 #Preview {
-    HistoryView(direction: .outcome)
+    HistoryView(direction: .outcome,
+                transactionsService: TransactionsService(),
+                categoriesService: CategoriesService(),
+                bankAccountsService: BankAccountsService()
+    )
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class BankAccountsService {
+final class BankAccountsService: ObservableObject {
     
     private var bankAccounts: [BankAccount] = [
         BankAccount(id: 0, userId: 0, name: "Иван Иванович", balance: 100.00, currency: "RUB", createdAt: Date(), updatedAt: Date())

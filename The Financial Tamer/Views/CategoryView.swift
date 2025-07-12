@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct CategoryView: View {
+    let categoriesService: CategoriesService
     @State private var categories: [Category] = []
     @State private var searchText: String = ""
-    private let service = CategoriesService()
     
     func fuzzyMatch(_ pattern: String, in text: String) -> Bool {
         if pattern.isEmpty { return true }
@@ -55,12 +55,12 @@ struct CategoryView: View {
             .navigationTitle("Мои статьи")
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск")
             .task {
-                categories = await service.categories()
+                categories = await categoriesService.categories()
             }
         }
     }
 }
 
 #Preview {
-    CategoryView()
+    CategoryView(categoriesService: CategoriesService())
 }
