@@ -116,6 +116,20 @@ class AnalysisViewController: UIViewController, UITableViewDataSource, UITableVi
             return transactions.sorted { $0.amount > $1.amount }
         }
     }
+
+    private func showOverlayDatePicker(date: Date, minimumDate: Date?, maximumDate: Date?, onDateSelected: @escaping (Date) -> Void) {
+        let overlay = OverlayDatePickerView(date: date, minimumDate: minimumDate, maximumDate: maximumDate)
+        overlay.frame = view.bounds
+        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        overlay.onDateSelected = { (date: Date) in
+            onDateSelected(date)
+            // overlay НЕ скрываем здесь, чтобы пользователь мог выбрать другую дату
+        }
+        overlay.onDismiss = { [weak overlay] in
+            overlay?.removeFromSuperview()
+        }
+        view.addSubview(overlay)
+    }
     
     // MARK: - TableView DataSource
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -161,7 +175,39 @@ class AnalysisViewController: UIViewController, UITableViewDataSource, UITableVi
                     guard let self = self else { return }
                     self.sortType = type
                 },
-                currencyService: currencyService
+                currencyService: currencyService,
+                onShowStartPicker: { [weak self, weak tableView] in
+                    guard let self = self else { return }
+                    self.showOverlayDatePicker(
+                        date: self.startDate,
+                        minimumDate: nil,
+                        maximumDate: self.endDate,
+                        onDateSelected: { [weak self, weak tableView] (date: Date) in
+                            guard let self = self else { return }
+                            self.startDate = self.dateService.startOfDay(date: date)
+                            if self.startDate > self.endDate {
+                                self.endDate = self.startDate
+                            }
+                            tableView?.reloadData()
+                        }
+                    )
+                },
+                onShowEndPicker: { [weak self, weak tableView] in
+                    guard let self = self else { return }
+                    self.showOverlayDatePicker(
+                        date: self.endDate,
+                        minimumDate: self.startDate,
+                        maximumDate: nil,
+                        onDateSelected: { [weak self, weak tableView] (date: Date) in
+                            guard let self = self else { return }
+                            self.endDate = self.dateService.endOfDay(date: date)
+                            if self.endDate < self.startDate {
+                                self.startDate = self.endDate
+                            }
+                            tableView?.reloadData()
+                        }
+                    )
+                }
             )
             cell.selectionStyle = .none
             return cell
@@ -273,8 +319,6 @@ class FilterCell: UITableViewCell {
     private let filterRowVerticalPadding: CGFloat = 5
     private let startDateButton = UIButton(type: .system)
     private let endDateButton = UIButton(type: .system)
-    private var startDate: Date = Date()
-    private var endDate: Date = Date()
     private let sortSegmented = UISegmentedControl(items: AnalysisViewController.SortType.allCases.map { $0.rawValue })
     private let totalTitleLabel = UILabel()
     private let totalValueLabel = UILabel()
@@ -282,7 +326,10 @@ class FilterCell: UITableViewCell {
     private var onEndDateChanged: ((Date) -> Void)?
     private var onSortTypeChanged: ((AnalysisViewController.SortType) -> Void)?
     private var currencyService: CurrencyService?
-    
+    // Новое: callbacks для показа overlay
+    private var onShowStartPicker: (() -> Void)?
+    private var onShowEndPicker: (() -> Void)?
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         let background = UIView()
@@ -294,7 +341,7 @@ class FilterCell: UITableViewCell {
         stack.axis = .vertical
         stack.spacing = 0
         stack.translatesAutoresizingMaskIntoConstraints = false
-        
+
         // Start
         let startLabel = UILabel()
         startLabel.text = "Период: Начало"
@@ -321,7 +368,7 @@ class FilterCell: UITableViewCell {
         startStack.isLayoutMarginsRelativeArrangement = true
         startStack.layoutMargins = UIEdgeInsets(top: filterRowVerticalPadding, left: 0, bottom: filterRowVerticalPadding, right: 0)
         startStack.setCustomSpacing(8, after: startLabel)
-        
+
         // End
         let endLabel = UILabel()
         endLabel.text = "Период: Конец"
@@ -348,7 +395,7 @@ class FilterCell: UITableViewCell {
         endStack.isLayoutMarginsRelativeArrangement = true
         endStack.layoutMargins = UIEdgeInsets(top: filterRowVerticalPadding, left: 0, bottom: filterRowVerticalPadding, right: 0)
         endStack.setCustomSpacing(8, after: endLabel)
-        
+
         // Sort
         let sortStack = UIStackView()
         sortStack.axis = .horizontal
@@ -360,7 +407,7 @@ class FilterCell: UITableViewCell {
         sortSegmented.addTarget(self, action: #selector(sortTypeChanged), for: .valueChanged)
         sortStack.addArrangedSubview(sortLabel)
         sortStack.addArrangedSubview(sortSegmented)
-        
+
         // Total (two labels on ends)
         let totalStack = UIStackView()
         totalStack.axis = .horizontal
@@ -375,6 +422,7 @@ class FilterCell: UITableViewCell {
         totalStack.addArrangedSubview(UIView()) // spacer
         totalStack.addArrangedSubview(totalValueLabel)
 
+        // Добавляем всё в stack
         stack.addArrangedSubview(startStack)
         stack.addArrangedSubview(makeSeparator())
         stack.addArrangedSubview(endStack)
@@ -409,92 +457,100 @@ class FilterCell: UITableViewCell {
         onStartDateChanged: @escaping (Date) -> Void,
         onEndDateChanged: @escaping (Date) -> Void,
         onSortTypeChanged: @escaping (AnalysisViewController.SortType) -> Void,
-        currencyService: CurrencyService
+        currencyService: CurrencyService,
+        onShowStartPicker: (() -> Void)? = nil,
+        onShowEndPicker: (() -> Void)? = nil
     ) {
         self.onStartDateChanged = onStartDateChanged
         self.onEndDateChanged = onEndDateChanged
         self.onSortTypeChanged = onSortTypeChanged
         self.currencyService = currencyService
-        self.startDate = startDate
-        self.endDate = endDate
-        updateDateButtons()
-        sortSegmented.selectedSegmentIndex = AnalysisViewController.SortType.allCases.firstIndex(of: sortType) ?? 0
-        totalValueLabel.text = "\(total) \(currencyService.getSymbol(for: currency))"
-    }
-    
-    private func updateDateButtons() {
+        self.onShowStartPicker = onShowStartPicker
+        self.onShowEndPicker = onShowEndPicker
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.locale = Locale.current
         startDateButton.setTitle(formatter.string(from: startDate), for: .normal)
         endDateButton.setTitle(formatter.string(from: endDate), for: .normal)
+        sortSegmented.selectedSegmentIndex = AnalysisViewController.SortType.allCases.firstIndex(of: sortType) ?? 0
+        totalValueLabel.text = "\(total) \(currencyService.getSymbol(for: currency))"
+        setNeedsLayout()
+        layoutIfNeeded()
     }
-
+    
     @objc private func startDateButtonTapped() {
-        showDatePickerDialog(isStart: true)
+        onShowStartPicker?()
     }
     @objc private func endDateButtonTapped() {
-        showDatePickerDialog(isStart: false)
+        onShowEndPicker?()
     }
-
-    private func showDatePickerDialog(isStart: Bool) {
-        guard let parentVC = self.parentViewController else { return }
-        let alert = UIAlertController(title: isStart ? "Выберите начало" : "Выберите конец", message: nil, preferredStyle: .actionSheet)
-        let picker = UIDatePicker()
-        picker.datePickerMode = .date
-        picker.preferredDatePickerStyle = .wheels
-        picker.date = isStart ? startDate : endDate
-        picker.maximumDate = isStart ? endDate : nil
-        picker.minimumDate = isStart ? nil : startDate
-        picker.translatesAutoresizingMaskIntoConstraints = false
-        alert.view.addSubview(picker)
-        NSLayoutConstraint.activate([
-            picker.topAnchor.constraint(equalTo: alert.view.topAnchor, constant: 48),
-            picker.leadingAnchor.constraint(equalTo: alert.view.leadingAnchor, constant: 8),
-            picker.trailingAnchor.constraint(equalTo: alert.view.trailingAnchor, constant: -8),
-            picker.heightAnchor.constraint(equalToConstant: 216)
-        ])
-        alert.view.translatesAutoresizingMaskIntoConstraints = false
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel, handler: nil))
-        alert.addAction(UIAlertAction(title: "Выбрать", style: .default, handler: { [weak self] _ in
-            guard let self = self else { return }
-            if isStart {
-                self.startDate = picker.date
-                self.updateDateButtons()
-                self.onStartDateChanged?(self.startDate)
-            } else {
-                self.endDate = picker.date
-                self.updateDateButtons()
-                self.onEndDateChanged?(self.endDate)
-            }
-        }))
-        parentVC.present(alert, animated: true)
-    }
-
-    // Helper to get parent view controller
-    private var parentViewController: UIViewController? {
-        var parentResponder: UIResponder? = self
-        while let responder = parentResponder {
-            if let vc = responder as? UIViewController {
-                return vc
-            }
-            parentResponder = responder.next
-        }
-        return nil
-    }
-
     @objc private func sortTypeChanged() {
         if let selected = AnalysisViewController.SortType.allCases[safe: sortSegmented.selectedSegmentIndex] {
             onSortTypeChanged?(selected)
         }
     }
-
     private func makeSeparator() -> UIView {
         let sep = UIView()
         sep.backgroundColor = .separator
         sep.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
-        return sep
+        return sep;
     }
+}
+
+// MARK: - OverlayDatePickerView
+class OverlayDatePickerView: UIView {
+    var onDateSelected: ((Date) -> Void)?
+    var onDismiss: (() -> Void)?
+    private let picker = UIDatePicker()
+    private let container = UIView()
+
+    init(date: Date, minimumDate: Date?, maximumDate: Date?) {
+        super.init(frame: .zero)
+        backgroundColor = UIColor.black.withAlphaComponent(0.3)
+        picker.datePickerMode = .date
+        picker.preferredDatePickerStyle = .inline
+        picker.date = date
+        picker.translatesAutoresizingMaskIntoConstraints = false
+
+        container.backgroundColor = .systemBackground
+        container.layer.cornerRadius = 16
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(picker)
+        addSubview(container)
+
+        // Исправленный tap gesture:
+        let tap = UITapGestureRecognizer(target: self, action: #selector(backgroundTapped(_:)))
+        self.addGestureRecognizer(tap)
+        container.isUserInteractionEnabled = true
+        tap.cancelsTouchesInView = false
+
+        NSLayoutConstraint.activate([
+            container.centerYAnchor.constraint(equalTo: centerYAnchor),
+            container.centerXAnchor.constraint(equalTo: centerXAnchor),
+            container.widthAnchor.constraint(equalToConstant: 340),
+            picker.topAnchor.constraint(equalTo: container.topAnchor, constant: 16),
+            picker.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
+            picker.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
+            picker.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -16)
+        ])
+
+        picker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
+    }
+
+    @objc private func backgroundTapped(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: self)
+        if !container.frame.contains(location) {
+            onDismiss?()
+            removeFromSuperview()
+        }
+        // Если тап по container — ничего не делаем!
+    }
+
+    @objc private func dateChanged() {
+        onDateSelected?(picker.date)
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 }
 
 // MARK: - SwiftUI Wrapper
