@@ -214,46 +214,44 @@ class AnalysisViewController: UIViewController, UITableViewDataSource, UITableVi
         case .transactions:
             let cell = tableView.dequeueReusableCell(withIdentifier: "TransactionCell", for: indexPath)
             let transaction = transactions[indexPath.row]
+            
+            // Очищаем старые subviews для избежания проблем с переиспользованием
+            cell.contentView.subviews.forEach { subview in
+                if subview.tag == 998 || subview.tag == 999 {
+                    subview.removeFromSuperview()
+                }
+            }
+            
             // Основной текст
             cell.textLabel?.text = "\(transaction.category.emoji)  \(transaction.category.name)"
             cell.detailTextLabel?.text = nil
+            
             // Добавим сумму и процент справа
             let rightLabelTag = 999
             let percentLabelTag = 998
             let total = transactions.reduce(Decimal.zero) { $0 + $1.amount }
             let percent: Double = (total != 0) ? (NSDecimalNumber(decimal: transaction.amount).doubleValue / NSDecimalNumber(decimal: total).doubleValue) * 100 : 0
             let percentText = String(format: "%.1f%%", percent)
-            var percentLabel: UILabel!
-            var rightLabel: UILabel!
-            if let label = cell.contentView.viewWithTag(percentLabelTag) as? UILabel {
-                percentLabel = label
-                percentLabel.text = percentText
-            } else {
-                percentLabel = UILabel()
-                percentLabel.tag = percentLabelTag
-                percentLabel.font = .systemFont(ofSize: 17)
-                percentLabel.textColor = .label
-                percentLabel.textAlignment = .right
-                percentLabel.text = percentText
-                percentLabel.translatesAutoresizingMaskIntoConstraints = false
-                cell.contentView.addSubview(percentLabel)
-            }
-            if let label = cell.contentView.viewWithTag(rightLabelTag) as? UILabel {
-                rightLabel = label
-                rightLabel.text = "\(transaction.amount) \(currencyService.getSymbol(for: transaction.account.currency))"
-            } else {
-                rightLabel = UILabel()
-                rightLabel.tag = rightLabelTag
-                rightLabel.font = .systemFont(ofSize: 17)
-                rightLabel.textColor = .label
-                rightLabel.textAlignment = .right
-                rightLabel.text = "\(transaction.amount) \(currencyService.getSymbol(for: transaction.account.currency))"
-                rightLabel.translatesAutoresizingMaskIntoConstraints = false
-                cell.contentView.addSubview(rightLabel)
-            }
+            
+            let percentLabel = UILabel()
+            percentLabel.tag = percentLabelTag
+            percentLabel.font = .systemFont(ofSize: 17)
+            percentLabel.textColor = .label
+            percentLabel.textAlignment = .right
+            percentLabel.text = percentText
+            percentLabel.translatesAutoresizingMaskIntoConstraints = false
+            cell.contentView.addSubview(percentLabel)
+            
+            let rightLabel = UILabel()
+            rightLabel.tag = rightLabelTag
+            rightLabel.font = .systemFont(ofSize: 17)
+            rightLabel.textColor = .label
+            rightLabel.textAlignment = .right
+            rightLabel.text = "\(transaction.amount) \(currencyService.getSymbol(for: transaction.account.currency))"
+            rightLabel.translatesAutoresizingMaskIntoConstraints = false
+            cell.contentView.addSubview(rightLabel)
+            
             // Constraints: процент над суммой
-            NSLayoutConstraint.deactivate(percentLabel.constraints)
-            NSLayoutConstraint.deactivate(rightLabel.constraints)
             NSLayoutConstraint.activate([
                 percentLabel.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 8),
                 percentLabel.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
