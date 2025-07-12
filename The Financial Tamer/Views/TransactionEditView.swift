@@ -27,6 +27,7 @@ struct TransactionEditView: View {
     @State private var availableCategories: [Category] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var validationErrors: Set<ValidationField> = []
     @FocusState private var amountFieldFocused: Bool
     
     private var isCreateMode: Bool { mode == .create }
@@ -37,6 +38,65 @@ struct TransactionEditView: View {
     private var saveButtonTitle: String { isCreateMode ? "Создать" : "Сохранить" }
     private var canSave: Bool { !amount.isEmpty && selectedCategory != nil }
     private var currencySymbol: String { currencyService.getSymbol(for: "RUB") }
+    
+    // Получаем разделитель в зависимости от локали пользователя
+    private var decimalSeparator: String {
+        Locale.current.decimalSeparator ?? "."
+    }
+    
+    // Максимальная дата для выбора (сегодня)
+    private var maxDate: Date {
+        Calendar.current.startOfDay(for: Date())
+    }
+    
+    // Enum для полей валидации
+    enum ValidationField: CaseIterable {
+        case category
+        case amount
+    }
+    
+    // Проверка валидности всех полей
+    private func validateFields() -> Bool {
+        validationErrors.removeAll()
+        
+        // Проверка категории
+        if selectedCategory == nil {
+            validationErrors.insert(.category)
+        }
+        
+        // Проверка суммы
+        if amount.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            validationErrors.insert(.amount)
+        } else {
+            let cleanAmount = amount.replacingOccurrences(of: decimalSeparator, with: ".")
+            if Decimal(string: cleanAmount) == nil {
+                validationErrors.insert(.amount)
+            }
+        }
+        
+        return validationErrors.isEmpty
+    }
+    
+    // Получение сообщения об ошибке валидации
+    private func getValidationErrorMessage() -> String {
+        var missingFields: [String] = []
+        
+        if validationErrors.contains(.category) {
+            missingFields.append("статья")
+        }
+        if validationErrors.contains(.amount) {
+            missingFields.append("сумма")
+        }
+        
+        if missingFields.count == 1 {
+            return "Пожалуйста, заполните поле: \(missingFields[0])"
+        } else if missingFields.count > 1 {
+            let fieldsString = missingFields.dropLast().joined(separator: ", ") + " и " + missingFields.last!
+            return "Пожалуйста, заполните поля: \(fieldsString)"
+        }
+        
+        return "Пожалуйста, заполните все обязательные поля"
+    }
     
     var body: some View {
         ZStack {
@@ -51,7 +111,7 @@ struct TransactionEditView: View {
                     Button(saveButtonTitle) { saveTransaction() }
                         .foregroundColor(.accentColor)
                         .font(.system(size: 17, weight: .semibold))
-                        .disabled(!canSave || isLoading)
+                        .disabled(isLoading)
                 }
                 .padding(.horizontal)
                 .padding(.top, 16)
@@ -72,6 +132,7 @@ struct TransactionEditView: View {
                     HStack {
                         Text("Статья")
                             .font(.system(size: 17, weight: .regular))
+                            .foregroundColor(validationErrors.contains(.category) ? .red : .primary)
                         Spacer()
                         Button(action: {
                             if !availableCategories.isEmpty {
@@ -84,40 +145,67 @@ struct TransactionEditView: View {
                                         .foregroundColor(.primary)
                                 } else {
                                     Text("Выберите")
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(validationErrors.contains(.category) ? .red : .secondary)
                                 }
                                 Image(systemName: "chevron.right")
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(validationErrors.contains(.category) ? .red : .secondary)
                                     .font(.caption)
                             }
                         }
                         .buttonStyle(.plain)
                     }
                     .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(validationErrors.contains(.category) ? Color.red.opacity(0.1) : Color.clear)
+                    )
                     Divider()
                     // Сумма
                     HStack {
                         Text("Сумма")
+                            .foregroundColor(validationErrors.contains(.amount) ? .red : .primary)
                         Spacer()
                         TextField("0", text: $amount)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .focused($amountFieldFocused)
+                            .foregroundColor(validationErrors.contains(.amount) ? .red : .primary)
                             .onChange(of: amount) { oldValue, newValue in
-                                let filtered = newValue.filter { "0123456789. ,".contains($0) }
-                                if filtered != newValue { amount = filtered }
+                                // Очищаем ошибку валидации при изменении
+                                validationErrors.remove(.amount)
+                                
+                                // Разрешаем только цифры и один разделитель в зависимости от локали
+                                let allowedChars = "0123456789" + decimalSeparator
+                                let filtered = newValue.filter { allowedChars.contains($0) }
+                                
+                                // Проверяем, что разделитель используется только один раз
+                                let separatorCount = filtered.filter { String($0) == decimalSeparator }.count
+                                if separatorCount > 1 {
+                                    // Удаляем все разделители кроме первого
+                                    let components = filtered.components(separatedBy: decimalSeparator)
+                                    if components.count > 1 {
+                                        let firstComponent = components[0]
+                                        let remainingComponents = components.dropFirst().joined()
+                                        amount = firstComponent + decimalSeparator + remainingComponents
+                                    }
+                                } else if filtered != newValue {
+                                    amount = filtered
+                                }
                             }
                         Text(currencySymbol)
-                            
-                            
+                            .foregroundColor(validationErrors.contains(.amount) ? .red : .primary)
                     }
                     .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(validationErrors.contains(.amount) ? Color.red.opacity(0.1) : Color.clear)
+                    )
                     Divider()
                     // Дата
                     HStack {
                         Text("Дата")
                         Spacer()
-                        DatePicker("", selection: $transactionDate, displayedComponents: .date)
+                        DatePicker("", selection: $transactionDate, in: ...maxDate, displayedComponents: .date)
                             .labelsHidden()
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
@@ -161,7 +249,7 @@ struct TransactionEditView: View {
                 .padding(.bottom, 16)
                 
                 // Date & Time pickers (hidden, but accessible)
-                DatePicker("", selection: $transactionDate, displayedComponents: [.date, .hourAndMinute])
+                DatePicker("", selection: $transactionDate, in: ...maxDate, displayedComponents: [.date, .hourAndMinute])
                     .labelsHidden()
                     .frame(height: 0)
                     .opacity(0)
@@ -186,11 +274,17 @@ struct TransactionEditView: View {
             .sheet(isPresented: $showingCategoryPicker) {
                 CategoryPickerView(
                     categories: availableCategories,
-                    selectedCategory: $selectedCategory
+                    selectedCategory: $selectedCategory,
+                    onCategorySelected: {
+                        validationErrors.remove(.category)
+                    }
                 )
             }
-            .alert("Ошибка", isPresented: .constant(errorMessage != nil)) {
-                Button("OK") { errorMessage = nil }
+            .alert("Внимание", isPresented: .constant(errorMessage != nil)) {
+                Button("OK") { 
+                    errorMessage = nil
+                    validationErrors.removeAll()
+                }
             } message: {
                 if let errorMessage = errorMessage {
                     Text(errorMessage)
@@ -206,7 +300,12 @@ struct TransactionEditView: View {
             if let transaction = transaction {
                 selectedCategory = transaction.category
                 let amountValue = NSDecimalNumber(decimal: transaction.amount).doubleValue
-                amount = String(format: "%.0f", amountValue)
+                // Форматируем сумму с учетом локали пользователя
+                let formatter = NumberFormatter()
+                formatter.locale = Locale.current
+                formatter.minimumFractionDigits = 0
+                formatter.maximumFractionDigits = 2
+                amount = formatter.string(from: NSNumber(value: amountValue)) ?? String(format: "%.0f", amountValue)
                 transactionDate = transaction.transactionDate
                 comment = transaction.comment
             } else {
@@ -220,16 +319,19 @@ struct TransactionEditView: View {
         availableCategories = await categoriesService.categories(for: direction)
     }
     private func saveTransaction() {
+        // Проверяем валидность всех полей
+        if !validateFields() {
+            errorMessage = getValidationErrorMessage()
+            return
+        }
+        
         guard let category = selectedCategory else {
             errorMessage = "Пожалуйста, выберите статью"
             return
         }
-        guard !amount.isEmpty else {
-            errorMessage = "Пожалуйста, введите сумму"
-            return
-        }
-        let cleanAmount = amount.replacingOccurrences(of: ",", with: ".")
-            .replacingOccurrences(of: " ", with: "")
+        
+        // Преобразуем разделитель в стандартный формат для Decimal
+        let cleanAmount = amount.replacingOccurrences(of: decimalSeparator, with: ".")
         guard let amountDecimal = Decimal(string: cleanAmount) else {
             errorMessage = "Пожалуйста, введите корректную сумму"
             return
@@ -295,11 +397,14 @@ struct CategoryPickerView: View {
     let categories: [Category]
     @Binding var selectedCategory: Category?
     @Environment(\.dismiss) private var dismiss
+    var onCategorySelected: (() -> Void)?
+    
     var body: some View {
         NavigationStack {
             List(categories, id: \.self) { category in
                 Button(action: {
                     selectedCategory = category
+                    onCategorySelected?()
                     dismiss()
                 }) {
                     HStack {
