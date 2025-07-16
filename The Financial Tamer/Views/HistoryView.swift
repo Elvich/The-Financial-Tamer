@@ -108,9 +108,11 @@ struct HistoryView: View {
                     )
                     .foregroundColor(.primary)
                     .onChange(of: startDate) { _, newDate in
-                        endDate =
-                        newDate > endDate
-                        ? dateService.startOfDay(date: newDate) : endDate
+                        let normalizedStart = dateService.startOfDay(date: newDate)
+                        if normalizedStart > endDate {
+                            endDate = dateService.endOfDay(date: normalizedStart)
+                        }
+                        startDate = normalizedStart
                     }
             }
             
@@ -125,9 +127,11 @@ struct HistoryView: View {
                     )
                     .foregroundColor(.primary)
                     .onChange(of: endDate) { _, newDate in
-                        startDate =
-                        newDate < startDate
-                        ? dateService.endOfDay(date: newDate) : startDate
+                        let normalizedEnd = dateService.endOfDay(date: newDate)
+                        if normalizedEnd < startDate {
+                            startDate = dateService.startOfDay(date: normalizedEnd)
+                        }
+                        endDate = normalizedEnd
                     }
             }
             
@@ -152,7 +156,11 @@ struct HistoryView: View {
     }
 
     private var filteredTransactions: [Transaction] {
-        let filtered = transactionsService.transactions.filter { $0.category.direction == direction }
+        let filtered = transactionsService.transactions.filter {
+            $0.category.direction == direction &&
+            $0.transactionDate >= startDate &&
+            $0.transactionDate <= endDate
+        }
         switch sortType {
         case .date:
             return filtered.sorted { $0.transactionDate > $1.transactionDate }

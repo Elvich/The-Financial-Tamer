@@ -31,9 +31,11 @@ struct TransactionsView {
         HStack {
             Text(text)
             Spacer()
-            Text(
-                "\(totalAmount) \(currencyService.getSymbol(for: transactions[0].account.currency))"
-            )
+            if let first = transactions.first {
+                Text("\(totalAmount) \(currencyService.getSymbol(for: first.account.currency))")
+            } else {
+                Text("\(totalAmount)")
+            }
         }
     }
 
