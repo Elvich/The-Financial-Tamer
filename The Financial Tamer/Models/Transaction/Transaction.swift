@@ -20,7 +20,7 @@ struct Transaction: Hashable, Identifiable {
 
 extension Transaction{
     
-    static func parse(jsonObject: Any) -> Transaction?{
+    static func parse(jsonObject: Any) async throws -> Transaction?{
         guard let dict = jsonObject as? [String: Any] else {
             return nil
         }
@@ -29,7 +29,7 @@ extension Transaction{
         
         guard let id = dict["id"] as? Int,
               
-            let account = BankAccount.parse(jsonObject: dict["account"] as Any),
+            let account = try await BankAccount.parse(jsonObject: dict["account"] as Any),
             let category = Category.parse(jsonObject: dict["category"] as Any),
               
             let amount = Decimal(string: (dict["amount"] as? String) ?? ""),

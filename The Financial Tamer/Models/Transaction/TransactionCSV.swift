@@ -19,7 +19,7 @@ extension Transaction{
         case invalidDate(String)
     }
     
-    static func parse(csvString: String) throws -> Transaction?{
+    static func parse(csvString: String) async throws -> Transaction?{
         let components = csvString
             .components(separatedBy: CharacterSet(charactersIn: ",;"))
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -38,7 +38,7 @@ extension Transaction{
             throw ParseError.invalidId
         }
 
-        let account = BankAccount.parse(jsonObject: components[1])!
+        let account = try await BankAccount.parse(jsonObject: components[1])!
 
         let category = Category.parse(jsonObject: components[2])!
         

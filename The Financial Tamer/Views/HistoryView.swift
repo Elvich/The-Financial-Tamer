@@ -42,24 +42,33 @@ struct HistoryView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            VStack{
                 transactionsSettingsSection()
-                Section(header: Text("Операции")) {
-                    ForEach(filteredTransactions) { transaction in
-                        Button(action: {
-                            selectedTransaction = transaction
-                            showingEditTransaction = true
-                        }) {
-                            HStack {
-                                Text("\(transaction.category.emoji)    \(transaction.category.name)")
-                                Spacer()
-                                Text("\(transaction.amount) RUB")
+                    .padding(12)
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal, 16)
+                
+                List {
+                    //transactionsSettingsSection()
+                    Section(header: Text("Операции")) {
+                        ForEach(filteredTransactions) { transaction in
+                            Button(action: {
+                                selectedTransaction = transaction
+                                showingEditTransaction = true
+                            }) {
+                                HStack {
+                                    Text("\(transaction.category.emoji)    \(transaction.category.name)")
+                                    Spacer()
+                                    Text("\(transaction.amount) RUB")
+                                }
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
                     }
                 }
             }
+            .background(Color(.systemGroupedBackground))
             .padding(.bottom)
         }
         .navigationTitle("Моя история")
@@ -86,60 +95,70 @@ struct HistoryView: View {
     @ViewBuilder
     private func transactionsSettingsSection() -> some View {
 
-        HStack {
-            Text("Начало")
-            Spacer()
-
-            DatePicker("", selection: $startDate, displayedComponents: .date)
-                .labelsHidden()
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.accentColor.opacity(0.12))
-                )
-                .foregroundColor(.primary)
-                .onChange(of: startDate) { _, newDate in
-                    endDate =
+        VStack{
+            HStack {
+                Text("Начало")
+                Spacer()
+                
+                DatePicker("", selection: $startDate, displayedComponents: .date)
+                    .labelsHidden()
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.accentColor.opacity(0.12))
+                    )
+                    .foregroundColor(.primary)
+                    .onChange(of: startDate) { _, newDate in
+                        endDate =
                         newDate > endDate
                         ? dateService.startOfDay(date: newDate) : endDate
-                }
-        }
-
-        HStack {
-            Text("Конец")
-            Spacer()
-            DatePicker("", selection: $endDate, displayedComponents: .date)
-                .labelsHidden()
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.accentColor.opacity(0.12))
-                )
-                .foregroundColor(.primary)
-                .onChange(of: endDate) { _, newDate in
-                    startDate =
+                    }
+            }
+            
+            HStack {
+                Text("Конец")
+                Spacer()
+                DatePicker("", selection: $endDate, displayedComponents: .date)
+                    .labelsHidden()
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.accentColor.opacity(0.12))
+                    )
+                    .foregroundColor(.primary)
+                    .onChange(of: endDate) { _, newDate in
+                        startDate =
                         newDate < startDate
                         ? dateService.endOfDay(date: newDate) : startDate
-                }
-        }
-
-        HStack {
-
-            Picker("Сортировать по", selection: $sortType) {
-                ForEach(SortType.allCases, id: \.self) { type in
-                    Text(type.rawValue).tag(type)
-                }
+                    }
             }
+            
+            HStack {
+                Text("Cортировать по ")
+                Spacer()
+                Picker("", selection: $sortType) {
+                    ForEach(SortType.allCases, id: \.self) { type in
+                        Text(type.rawValue).tag(type)
+                    }
+                }
+                .pickerStyle(.palette)
+            }
+            
+            
+            transactionsView.totalRowView(
+                startDate: startDate,
+                endDate: endDate,
+                text: "Сумма"
+            )
         }
-
-        transactionsView.totalRowView(
-            startDate: startDate,
-            endDate: endDate,
-            text: "Сумма"
-        )
-
     }
 
     private var filteredTransactions: [Transaction] {
-        transactionsService.transactions.filter { $0.category.direction == direction }
+        let filtered = transactionsService.transactions.filter { $0.category.direction == direction }
+        switch sortType {
+        case .date:
+            return filtered.sorted { $0.transactionDate > $1.transactionDate }
+        case .amount:
+            return filtered.sorted { $0.amount > $1.amount }
+        }
     }
 
 }
@@ -155,6 +174,6 @@ extension HistoryView {
     HistoryView(direction: .outcome,
                 transactionsService: TransactionsService(),
                 categoriesService: CategoriesService(),
-                bankAccountsService: BankAccountsService()
+                bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )
 }

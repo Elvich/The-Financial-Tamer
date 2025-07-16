@@ -21,10 +21,19 @@ struct TransactionsListView: View {
     
     var body: some View {
         NavigationStack {
-            List {
-                TransactionsView(transactionService: transactionsService, direction: direction).totalRowView()
-                transactionsSection
+            VStack{
+                TransactionsView(transactionService: transactionsService, direction: direction).totalRowView()                    
+                    .padding(16)
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal, 16)
+                
+                
+                List {
+                    transactionsSection
+                }
             }
+            .background(Color(.systemGroupedBackground))
             .padding(.bottom)
             .navigationTitle(title)
             .toolbar {
@@ -107,6 +116,6 @@ struct TransactionsListView: View {
         direction: .income,
         transactionsService: TransactionsService(),
         categoriesService: CategoriesService(),
-        bankAccountsService: BankAccountsService()
+        bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )
 }

@@ -9,9 +9,19 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @StateObject private var transactionsService = TransactionsService()
-    @StateObject private var categoriesService = CategoriesService()
-    @StateObject private var bankAccountsService = BankAccountsService()
+    
+    
+    @StateObject private var transactionsService: TransactionsService
+    @StateObject private var categoriesService: CategoriesService
+    @StateObject private var bankAccountsService: BankAccountsService
+    
+    init() {
+        let networkService = DefaultNetworkClient()
+        
+        _transactionsService = StateObject(wrappedValue: TransactionsService())
+        _categoriesService = StateObject(wrappedValue: CategoriesService())
+        _bankAccountsService = StateObject(wrappedValue: BankAccountsService(networkClient: networkService))
+    }
     
     var body: some View {
         TabView {

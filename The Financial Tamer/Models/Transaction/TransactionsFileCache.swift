@@ -13,10 +13,10 @@ final class TransactionsFileCache {
     
     var transactionsArray: [Transaction] { return transactions }
     
-    init(fileURL: URL) {
+    init(fileURL: URL) async {
         self.fileURL = fileURL
         checkFileExists()
-        transactions = loadTransactionsFromFile()
+        transactions = await loadTransactionsFromFile()
     }
     
     func add(_ transaction: Transaction) -> Bool {
@@ -84,26 +84,38 @@ final class TransactionsFileCache {
         }
     }
     
-    private func loadTransactionsFromFile() -> [Transaction] {
-        do {
-            let data = try Data(contentsOf: fileURL)
-            
-            guard let jsonArray = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
-                print("Формат файла некорректен")
-                return []
+    private func loadTransactionsFromFile() async -> [Transaction] {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .utility).async {
+                do {
+                    let data = try Data(contentsOf: self.fileURL)
+                    guard let jsonArray = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                        print("Формат файла некорректен")
+                        continuation.resume(returning: [])
+                        return
+                    }
+                    Task {
+                        var parsedTransactions = [Transaction]()
+                        try await withThrowingTaskGroup(of: Transaction?.self) { group in
+                            for dict in jsonArray {
+                                group.addTask {
+                                    try await Transaction.parse(jsonObject: dict)
+                                }
+                            }
+                            for try await transaction in group {
+                                if let transaction = transaction {
+                                    parsedTransactions.append(transaction)
+                                }
+                            }
+                        }
+                        parsedTransactions.sort { $0.id < $1.id }
+                        continuation.resume(returning: parsedTransactions)
+                    }
+                } catch {
+                    print("Ошибка при загрузке транзакций: \(error)")
+                    continuation.resume(returning: [])
+                }
             }
-
-            var parsedTransactions = jsonArray.compactMap { dict in
-                Transaction.parse(jsonObject: dict)
-            }
-            
-            parsedTransactions.sort { $0.id < $1.id }
-            
-            return parsedTransactions
-            
-        } catch {
-            print("Ошибка при загрузке транзакций: \(error)")
-            return []
         }
     }
     

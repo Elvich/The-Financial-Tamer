@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct BankAccount: Hashable{
+struct BankAccount: Hashable, Decodable{
     let id: Int
     let userId: Int
     var name: String
@@ -18,7 +18,7 @@ struct BankAccount: Hashable{
 }
  
 extension BankAccount{
-    static func parse(jsonObject: Any) -> BankAccount?{
+    static func parse(jsonObject: Any) async throws -> BankAccount?{
         guard let dict = jsonObject as? [String: Any] else {
             return nil
         }

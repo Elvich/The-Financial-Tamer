@@ -270,7 +270,7 @@ struct AccountView: View {
 }
 
 #Preview {
-    AccountView(bankAccountsService: BankAccountsService())
+    AccountView(bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient()))
 }
 
 // MARK: - Shake gesture support for SwiftUI

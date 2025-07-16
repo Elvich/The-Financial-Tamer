@@ -450,6 +450,6 @@ extension DateService {
         direction: .outcome, transaction: nil,
         transactionsService: TransactionsService(),
         categoriesService: CategoriesService(),
-        bankAccountsService: BankAccountsService()
+        bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )
 }
