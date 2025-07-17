@@ -61,19 +61,7 @@ final class BankAccountsService: ObservableObject {
 
         return bankAccounts[id]
     }
-    
-    func update<Value>(id: Int, keyPath: WritableKeyPath<BankAccount, Value>, value: Value) async throws -> BankAccount {
-        var account = try await getAccount(id: id)
-        account[keyPath: keyPath] = value
-        account.updatedAt = Date()
         
-        await MainActor.run {
-            bankAccounts[id] = account
-        }
-        
-        return account
-    }
-    
     func update(from account: inout BankAccount) async throws {
         // Находим индекс аккаунта по ID
         guard let index = bankAccounts.firstIndex(where: { $0.id == account.id }) else {
