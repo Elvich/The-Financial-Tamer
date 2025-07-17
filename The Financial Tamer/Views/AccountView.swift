@@ -71,10 +71,17 @@ private extension AccountView {
     }
     
     func accountContent(for account: BankAccount) -> some View {
-        VStack(spacing: Constants.spacing) {
-            balanceSection(for: account)
-            currencySection(for: account)
-            Spacer()
+        ScrollView{
+            VStack(spacing: Constants.spacing) {
+                balanceSection(for: account)
+                currencySection(for: account)
+                Spacer()
+            }
+        }
+        .refreshable {
+            Task{
+                await loadAccount(hardRefresh: true)
+            }
         }
         .background(Color(.systemGroupedBackground))
         .padding(.bottom)
@@ -300,14 +307,14 @@ private extension AccountView {
 // MARK: - Business Logic
 private extension AccountView {
     
-    func loadAccount() async {
+    func loadAccount(hardRefresh: Bool = false) async {
         await MainActor.run {
             isLoading = true
             errorMessage = nil
         }
         
         do {
-            account = try await bankAccountsService.getAccount()
+            account = try await bankAccountsService.getAccount(hardRefresh: hardRefresh)
         } catch {
             print("Failed to load account: \(error.localizedDescription)")
             await MainActor.run {

@@ -48,8 +48,8 @@ final class BankAccountsService: ObservableObject {
         return accounts
     }
     
-    func getAccount(_ id: Int = 0) async throws -> BankAccount {
-        if bankAccounts.isEmpty {
+    func getAccount(id: Int = 0, hardRefresh: Bool = false) async throws -> BankAccount {
+        if bankAccounts.isEmpty || hardRefresh {
             bankAccounts = try await fetchAccounts()
         }
 
@@ -63,7 +63,7 @@ final class BankAccountsService: ObservableObject {
     }
     
     func update<Value>(id: Int, keyPath: WritableKeyPath<BankAccount, Value>, value: Value) async throws -> BankAccount {
-        var account = try await getAccount(id)
+        var account = try await getAccount(id: id)
         account[keyPath: keyPath] = value
         account.updatedAt = Date()
         
@@ -82,12 +82,46 @@ final class BankAccountsService: ObservableObject {
             ])
         }
         
-        // Обновляем время изменения
+        // Сохраняем старое состояние для возможного отката
+        let oldAccount = bankAccounts[index]
+        
+        // Обновляем дату изменения
         account.updatedAt = Date()
         
-        // Обновляем аккаунт в массиве на главном потоке
+        print("[BankAccountsService] Локально обновляем аккаунт с id = \(account.id)")
+        // Оптимистично обновляем локально на главном потоке
         await MainActor.run {
             bankAccounts[index] = account
+        }
+        
+        do {
+            // Сериализуем аккаунт в JSON
+            let body = account.jsonObject
+            // Отправляем PUT-запрос на сервер
+            print("[BankAccountsService] Отправляем PUT на сервер для аккаунта id = \(account.id)")
+            let raw = try await networkClient.request(
+                endpoint: "accounts/\(account.id)",
+                method: .put,
+                body: body,
+                headers: ["Content-Type": "application/json"]
+            )
+            // Парсим ответ сервера (если сервер возвращает обновлённый объект)
+            if let updatedAccount = try? await BankAccount.parse(jsonObject: raw) {
+                print("[BankAccountsService] Сервер успешно обновил аккаунт id = \(updatedAccount.id)")
+                await MainActor.run {
+                    bankAccounts[index] = updatedAccount
+                }
+            } else {
+                print("[BankAccountsService] Сервер вернул неожиданный ответ для аккаунта id = \(account.id)")
+            }
+        } catch {
+            print("[BankAccountsService] Ошибка при обновлении аккаунта id = \(account.id) на сервере: \(error)")
+            // В случае ошибки откатываем локальные изменения
+            await MainActor.run {
+                bankAccounts[index] = oldAccount
+            }
+            print("[BankAccountsService] Откатили локальные изменения для аккаунта id = \(account.id)")
+            throw error
         }
     }
 }

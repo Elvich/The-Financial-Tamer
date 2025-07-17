@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct BankAccount: Hashable, Decodable{
+struct BankAccount: Hashable, Encodable{
     let id: Int
     let userId: Int
     var name: String
@@ -52,5 +52,14 @@ extension BankAccount{
             createdAt: createdAt,
             updatedAt: updatedAt
         )
+    }
+
+
+    var jsonObject: [String: Any] {
+        return [
+            "name": self.name,
+            "balance": self.balance,
+            "currency": self.currency,
+        ]
     }
 }

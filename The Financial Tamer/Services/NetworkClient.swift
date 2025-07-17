@@ -34,7 +34,7 @@ protocol NetworkClient {
     func request(
         endpoint: String,
         method: HTTPMethod,
-        body: (any Encodable)?,
+        body: ([String: Any])?,
         headers: [String: String]?
     ) async throws -> Any
 }
@@ -98,7 +98,7 @@ final class DefaultNetworkClient: NetworkClient {
     func request(
         endpoint: String,
         method: HTTPMethod,
-        body: (any Encodable)? = nil,
+        body: ([String: Any])? = nil,
         headers: [String: String]? = nil
     ) async throws -> Any {
         var urlRequest = URLRequest(url: baseURL.appendingPathComponent(endpoint))
@@ -109,7 +109,7 @@ final class DefaultNetworkClient: NetworkClient {
 
         if let body = body {
             do {
-                urlRequest.httpBody = try JSONEncoder().encode(body)
+                urlRequest.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
             } catch {
                 throw NetworkError.encodingError(error)
             }
