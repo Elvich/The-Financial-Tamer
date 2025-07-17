@@ -316,7 +316,7 @@ struct TransactionEditView: View {
         }
     }
     private func loadCategories() async {
-        availableCategories = await categoriesService.categories(for: direction)
+        availableCategories = try! await categoriesService.categories(for: direction)
     }
     private func saveTransaction() {
         // Проверяем валидность всех полей
@@ -449,7 +449,7 @@ extension DateService {
         mode: .create,
         direction: .outcome, transaction: nil,
         transactionsService: TransactionsService(),
-        categoriesService: CategoriesService(),
+        categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
         bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )
 }

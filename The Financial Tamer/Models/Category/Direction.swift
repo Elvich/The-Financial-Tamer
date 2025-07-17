@@ -10,4 +10,5 @@ import Foundation
 enum Direction  {
     case income
     case outcome
+    case all
 }

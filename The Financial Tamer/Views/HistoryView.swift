@@ -181,7 +181,7 @@ extension HistoryView {
 #Preview {
     HistoryView(direction: .outcome,
                 transactionsService: TransactionsService(),
-                categoriesService: CategoriesService(),
+                categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
                 bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )
 }

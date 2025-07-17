@@ -115,7 +115,7 @@ struct TransactionsListView: View {
     TransactionsListView(
         direction: .income,
         transactionsService: TransactionsService(),
-        categoriesService: CategoriesService(),
+        categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
         bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )
 }
