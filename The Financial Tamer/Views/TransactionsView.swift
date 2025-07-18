@@ -21,11 +21,13 @@ struct TransactionsView {
         endDate: Date = DateService().endOfDay(),
         text: String = "Всего"
     ) -> some View {
+        
         let transactions = transactionService.getTransactions(
             start: startDate,
             end: endDate,
             direction: direction
         )
+        
         let totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
 
         HStack {
@@ -40,19 +42,21 @@ struct TransactionsView {
     }
 
     @ViewBuilder
-    func transactionsSection(
+     func transactionsSection(
         startDate: Date = DateService().startOfDay(),
         endDate: Date = DateService().endOfDay(),
         sortType: HistoryView.SortType = .date,
         onTransactionTap: @escaping (Transaction) -> Void
     ) -> some View {
-        let transactions: [Transaction] = transactionService.getTransactions(
+        
+        let transactions = transactionService.getTransactions(
             start: startDate,
             end: endDate,
             direction: direction
         )
-
+        
         let sortedTransactions = sortTransactions(transactions, sortType)
+        
 
         Section(header: Text("Операции")) {
             ForEach(sortedTransactions, id: \.self) { transition in
@@ -72,6 +76,7 @@ struct TransactionsView {
                 .buttonStyle(PlainButtonStyle())
             }
         }
+        
     }
 
     private func sortTransactions(

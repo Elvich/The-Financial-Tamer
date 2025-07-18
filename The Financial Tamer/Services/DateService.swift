@@ -17,7 +17,7 @@ final class DateService {
     init(){
         dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
-        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+        dateFormatter.timeZone = TimeZone(identifier: "Europe/Moscow")
         
         calendar = Calendar.current
     }
@@ -28,6 +28,13 @@ final class DateService {
     
     func toString(from: Date) -> String {
         return dateFormatter.string(from: from)
+    }
+
+    func toStringDay(from: Date = Date()) -> String {
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let stringDate = dateFormatter.string(from: from)
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
+        return stringDate
     }
     
     func startOfDay(date: Date = Date()) -> Date {

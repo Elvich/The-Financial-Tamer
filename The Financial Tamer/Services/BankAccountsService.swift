@@ -45,6 +45,7 @@ final class BankAccountsService: ObservableObject {
                 }
             }
         }
+        
         return accounts
     }
     
@@ -53,13 +54,21 @@ final class BankAccountsService: ObservableObject {
             bankAccounts = try await fetchAccounts()
         }
 
-        guard id >= 0 && id < bankAccounts.count else {
+        guard id >= 0 else {
             throw NSError(domain: "BankAccountsService", code: 1, userInfo: [
-                NSLocalizedDescriptionKey: "Account with ID \(id) not found"
+                NSLocalizedDescriptionKey: "The ID cannot be negative"
             ])
         }
-
-        return bankAccounts[id]
+        
+        if id == 0 { return bankAccounts[0]}
+        
+        guard let index = bankAccounts.firstIndex(where: { $0.id == id }) else {
+            throw NSError(domain: "BankAccountsService", code: 3, userInfo: [
+                NSLocalizedDescriptionKey: "Account with ID \(id) not found for update"
+            ])
+        }
+        
+        return bankAccounts[index]
     }
         
     func update(from account: inout BankAccount) async throws {

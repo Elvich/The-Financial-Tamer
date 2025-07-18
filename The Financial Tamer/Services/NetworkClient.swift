@@ -48,7 +48,7 @@ enum HTTPMethod: String {
 
 final class DefaultNetworkClient: NetworkClient {
     private let baseURL = URL(string: "https://shmr-finance.ru/api/v1")!
-    private let token: String = "3QEngr77lAyEVDZ4w1kbUuuK"
+    private let token: String = Utility.token
     private let urlSession: URLSession
 
     init(urlSession: URLSession = .shared) {

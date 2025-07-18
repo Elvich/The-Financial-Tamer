@@ -24,10 +24,11 @@ struct HistoryView: View {
 
     init(direction: Direction, transactionsService: TransactionsService, categoriesService: CategoriesService, bankAccountsService: BankAccountsService) {
         self.direction = direction
-        transactionsView = TransactionsView(transactionService: transactionsService, direction: direction)
         self.transactionsService = transactionsService
         self.categoriesService = categoriesService
         self.bankAccountsService = bankAccountsService
+        
+        transactionsView = TransactionsView(transactionService: transactionsService, direction: direction)
         
 
         let monthAgo = dateService.calendar.date(
@@ -74,7 +75,7 @@ struct HistoryView: View {
         .navigationTitle("Моя история")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                NavigationLink(destination: AnalysisViewControllerWrapper(direction: direction)
+                NavigationLink(destination: AnalysisViewControllerWrapper(direction: direction, transactionService: transactionsService)
                     .navigationTitle("Анализ")
                     .navigationBarTitleDisplayMode(.large)
                     .toolbarBackground(Color(.systemGroupedBackground), for: .navigationBar)
@@ -148,8 +149,6 @@ struct HistoryView: View {
             
             
             transactionsView.totalRowView(
-                startDate: startDate,
-                endDate: endDate,
                 text: "Сумма"
             )
         }
@@ -180,7 +179,7 @@ extension HistoryView {
 
 #Preview {
     HistoryView(direction: .outcome,
-                transactionsService: TransactionsService(),
+                transactionsService: TransactionsService(networkClient: DefaultNetworkClient()),
                 categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
                 bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )

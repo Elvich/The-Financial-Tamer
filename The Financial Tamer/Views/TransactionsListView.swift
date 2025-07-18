@@ -90,7 +90,9 @@ struct TransactionsListView: View {
     }
     
     private var filteredTransactions: [Transaction] {
-        transactionsService.transactions.filter { $0.category.direction == direction }
+        //transactionsService.transactions.filter { $0.category.direction == direction }
+        transactionsService.getTransactions(start: Date(), end: Date(), direction: direction)
+        
     }
     
     private var transactionsSection: some View {
@@ -114,7 +116,7 @@ struct TransactionsListView: View {
 #Preview {
     TransactionsListView(
         direction: .income,
-        transactionsService: TransactionsService(),
+        transactionsService: TransactionsService(networkClient: DefaultNetworkClient()),
         categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
         bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )

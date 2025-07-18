@@ -340,7 +340,7 @@ struct TransactionEditView: View {
         Task {
             do {
                 if isCreateMode {
-                    let account = try await bankAccountsService.getAccount()
+                    let account = try await bankAccountsService.getAccount(id: Utility.accountId)
                     let newTransaction = Transaction(
                         id: Int.random(in: 1000...9999),
                         account: account,
@@ -354,10 +354,7 @@ struct TransactionEditView: View {
                     _ = try await transactionsService.add(newTransaction)
                 } else {
                     guard let transaction = transaction else { return }
-                    _ = try await transactionsService.update(id: transaction.id, keyPath: \.category, value: category)
-                    _ = try await transactionsService.update(id: transaction.id, keyPath: \.amount, value: amountDecimal)
-                    _ = try await transactionsService.update(id: transaction.id, keyPath: \.transactionDate, value: transactionDate)
-                    _ = try await transactionsService.update(id: transaction.id, keyPath: \.comment, value: comment.isEmpty ? "" : comment)
+                    _ = try await transactionsService.update(transaction)
                 }
                 await MainActor.run {
                     isLoading = false
@@ -375,7 +372,7 @@ struct TransactionEditView: View {
         guard let transaction = transaction else { return }
         isLoading = true
         Task {
-            let success = await transactionsService.delete(id: transaction.id)
+            let success = try await transactionsService.delete(id: transaction.id)
             await MainActor.run {
                 isLoading = false
                 if success {
@@ -448,7 +445,7 @@ extension DateService {
     TransactionEditView(
         mode: .create,
         direction: .outcome, transaction: nil,
-        transactionsService: TransactionsService(),
+        transactionsService: TransactionsService(networkClient: DefaultNetworkClient()),
         categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
         bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )

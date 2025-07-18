@@ -65,19 +65,28 @@ extension Transaction{
         
         let dateService = DateService()
         
-        let value = Decimal(string: "500")!
-        let doubleValue = Double(truncating: value as NSNumber)
-        let formatted = String(format: "%.2f", doubleValue)
-        
         return [
             "id": self.id,
             "account": self.account,
             "category": self.category,
-            "amount": "\(formatted)",
+            "amount": self.amount,
             "transactionDate": dateService.toString(from: self.transactionDate),
             "comment": self.comment,
             "createdAt": dateService.toString(from: self.createdAt),
             "updatedAt": dateService.toString(from: self.updatedAt)
+        ]
+    }
+    
+    var jsonObjectPOST: [String: Any] {
+        
+        let dateService = DateService()
+        
+        return [
+            "accountId": self.account.id,
+            "categoryId": self.category.id,
+            "amount": self.amount,
+            "transactionDate": dateService.toString(from: self.transactionDate),
+            "comment": self.comment,
         ]
     }
 }

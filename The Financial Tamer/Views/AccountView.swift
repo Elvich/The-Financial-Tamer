@@ -314,7 +314,7 @@ private extension AccountView {
         }
         
         do {
-            account = try await bankAccountsService.getAccount(hardRefresh: hardRefresh)
+            account = try await bankAccountsService.getAccount(id: Utility.accountId ,hardRefresh: hardRefresh)
         } catch {
             print("Failed to load account: \(error.localizedDescription)")
             await MainActor.run {

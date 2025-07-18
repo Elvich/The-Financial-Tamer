@@ -18,7 +18,7 @@ struct ContentView: View {
     init() {
         let networkService = DefaultNetworkClient()
         
-        _transactionsService = StateObject(wrappedValue: TransactionsService())
+        _transactionsService = StateObject(wrappedValue: TransactionsService(networkClient: networkService))
         _categoriesService = StateObject(wrappedValue: CategoriesService(networkClient: networkService))
         _bankAccountsService = StateObject(wrappedValue: BankAccountsService(networkClient: networkService))
     }
