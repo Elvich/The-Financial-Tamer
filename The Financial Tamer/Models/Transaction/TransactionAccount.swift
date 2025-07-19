@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TransactionAccount: Hashable, Equatable {
+struct TransactionAccount: Hashable, Equatable, Codable {
     let id: Int
     let name: String
     let balance: Decimal

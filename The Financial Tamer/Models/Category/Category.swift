@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Category: Hashable{
+struct Category: Hashable, Codable{
     let id: Int
     let name: String
     let emoji: Character
@@ -36,5 +36,25 @@ extension Category{
             emoji: emoji,
             direction: direction ? Direction.income : Direction.outcome
         )
+    }
+}
+
+
+extension Character: Codable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let string = try container.decode(String.self)
+        guard let first = string.first else {
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Пустая строка вместо Character"
+            )
+        }
+        self = first
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(String(self))
     }
 }

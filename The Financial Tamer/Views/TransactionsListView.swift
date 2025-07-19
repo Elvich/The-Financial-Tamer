@@ -12,12 +12,14 @@ struct TransactionsListView: View {
     @ObservedObject var transactionsService: TransactionsService
     let categoriesService: CategoriesService
     let bankAccountsService: BankAccountsService
+    private let currencyService = CurrencyService()
     @State private var showingCreateTransaction = false
     @State private var selectedTransaction: Transaction? = nil
     
     @State private var transactions: [Transaction] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var totalAmount: Decimal = 0
     
     private var title: String {
         (direction == .outcome ? "Расходы" : "Доходы") + " сегодня"
@@ -27,11 +29,26 @@ struct TransactionsListView: View {
         NavigationStack {
             ZStack{
                 VStack{
-                    TransactionsView(transactionService: transactionsService, direction: direction).totalRowView()
-                        .padding(16)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(12)
-                        .padding(.horizontal, 16)
+                    //TransactionsView(transactionService: transactionsService, direction: direction).totalRowView()
+                      //  .padding(16)
+                        //.background(Color(.systemBackground))
+                        //.cornerRadius(12)
+                        //.padding(.horizontal, 16)
+                    
+                    HStack {
+                        Text("Всего")
+                        Spacer()
+                        if let first = transactions.first {
+                            Text("\(totalAmount) \(currencyService.getSymbol(for: first.account.currency))")
+                        } else {
+                            Text("\(totalAmount)")
+                        }
+                    }
+                    .padding(16)
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal, 16)
+                
                     
                     if isLoading {
                         ProgressView()
@@ -114,11 +131,12 @@ struct TransactionsListView: View {
         do {
             let start = DateService().startOfDay()
             let end = DateService().endOfDay()
-            transactions = try await transactionsService.getTransactionsAsync(start: start, end: end, direction: direction, hardRefresh: hardRefresh)
+            transactions = try await transactionsService.getTransactions(start: start, end: end, direction: direction, hardRefresh: hardRefresh)
         } catch {
             errorMessage = "Ошибка загрузки: \(error.localizedDescription)"
         }
         isLoading = false
+        totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
     }
     
     private var transactionsSection: some View {

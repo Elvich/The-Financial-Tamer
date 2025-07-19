@@ -6,16 +6,30 @@
 //
 
 import Foundation
+import SwiftData
 
-struct Transaction: Hashable, Identifiable {
-    let id: Int
-    let account: TransactionAccount
+@Model
+final class Transaction {
+    @Attribute(.unique)
+    var id: Int
+    var account: TransactionAccount
     var category: Category
     var amount: Decimal
     var transactionDate: Date
     var comment: String
-    let createdAt: Date
+    var createdAt: Date
     var updatedAt: Date
+    
+    init(id: Int, account: TransactionAccount, category: Category, amount: Decimal, transactionDate: Date, comment: String, createdAt: Date, updatedAt: Date) {
+        self.id = id
+        self.account = account
+        self.category = category
+        self.amount = amount
+        self.transactionDate = transactionDate
+        self.comment = comment
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
 }
 
 extension Transaction{

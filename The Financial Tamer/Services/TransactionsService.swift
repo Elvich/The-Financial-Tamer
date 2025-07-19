@@ -11,7 +11,8 @@ import Combine
 final class TransactionsService: ObservableObject {
     private let networkClient: NetworkClient
     private let dateService: DateService
-    private var transactions: [Transaction] = []
+    
+    private let transactionsStorage = TransactionsSwiftDataStorage()
     
     init(networkClient: NetworkClient) {
         self.networkClient = networkClient
@@ -54,7 +55,7 @@ final class TransactionsService: ObservableObject {
     // MARK: - Add Transaction
     func add(_ transaction: Transaction) async throws -> Transaction {
         let body = transaction.jsonObjectPOST
-        let raw = try await networkClient.request(
+        _ = try await networkClient.request(
             endpoint: "transactions",
             method: .post,
             queryItems: nil,
@@ -67,7 +68,7 @@ final class TransactionsService: ObservableObject {
         //await MainActor.run {
         //    self.transactions.append(newTransaction)
         //}
-        
+        _ = await transactionsStorage.createTransaction(transaction)
         
         return transaction
     }
@@ -75,21 +76,16 @@ final class TransactionsService: ObservableObject {
     // MARK: - Update Transaction
     func update(_ transaction: Transaction) async throws -> Transaction {
         let body = transaction.jsonObjectPOST
-        let raw = try await networkClient.request(
+        _ = try await networkClient.request(
             endpoint: "transactions/\(transaction.id)",
             method: .put,
             queryItems: nil,
             body: body,
             headers: ["Content-Type": "application/json"]
         )
-        //guard let updatedTransaction = try? await Transaction.parse(jsonObject: raw) else {
-        //    throw NSError(domain: "TransactionsService", code: 4, userInfo: [NSLocalizedDescriptionKey: "Failed to parse updated transaction"])
-        //}
-        if let index = transactions.firstIndex(where: { $0.id == transaction.id }) {
-            await MainActor.run {
-                self.transactions[index] = transaction
-            }
-        }
+        
+        _ = await transactionsStorage.updateTransaction(transaction)
+        
         return transaction
     }
     
@@ -102,48 +98,31 @@ final class TransactionsService: ObservableObject {
             body: nil,
             headers: nil
         )
-        if let index = transactions.firstIndex(where: { $0.id == id }) {
-            await MainActor.run {
-                self.transactions.remove(at: index)
-            }
-            return true
-        } else {
-            return false
-        }
+        return await transactionsStorage.deleteTransaction(id: id)
     }
     
     // MARK: - Local Filtering (optional, for convenience)
     func getTransactions(_ start: Date, _ end: Date) async throws -> [Transaction] {
-        let all = transactions
+        let all = await transactionsStorage.getAllTransactions()
         return all.filter {
             $0.transactionDate >= start && $0.transactionDate <= end
         }
     }
     
-    func getTransactions(start: Date, end: Date, direction: Direction, hardRefresh: Bool = false) -> [Transaction] {
-        
-        if transactions.isEmpty || hardRefresh {
-            Task
-            {
-                transactions = try await fetchTransactions(accountId: Utility.accountId, startDate: start, endDate: end)
-            }
-        }
-        
-        let filtered: [Transaction] = self.transactions.filter {
-            $0.category.direction == direction
-        }
-        return filtered.filter {
-            $0.transactionDate >= start && $0.transactionDate <= end
-        }
-    }
     
-    func getTransactionsAsync(start: Date, end: Date, direction: Direction, hardRefresh: Bool = false) async throws -> [Transaction] {
+    func getTransactions(start: Date, end: Date, direction: Direction, hardRefresh: Bool = false) async throws -> [Transaction] {
+        
+        var transactions: [Transaction] = await transactionsStorage.getAllTransactions()
         
         if transactions.isEmpty || hardRefresh {
             transactions = try await fetchTransactions(accountId: Utility.accountId, startDate: start, endDate: end)
         }
         
-        let filtered: [Transaction] = self.transactions.filter {
+        for transaction in transactions {
+            _ = await transactionsStorage.createTransaction(transaction)
+        }
+        
+        let filtered: [Transaction] = transactions.filter {
             $0.category.direction == direction
         }
         return filtered.filter {

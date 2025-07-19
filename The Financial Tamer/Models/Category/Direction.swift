@@ -7,8 +7,8 @@
 
 import Foundation
 
-enum Direction  {
-    case income
-    case outcome
-    case all
+enum Direction: String, Codable  {
+    case income = "income"
+    case outcome = "outcome"
+    case all = "all"
 }

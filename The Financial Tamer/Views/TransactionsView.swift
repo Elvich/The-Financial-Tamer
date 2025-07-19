@@ -20,9 +20,9 @@ struct TransactionsView {
         startDate: Date = DateService().startOfDay(),
         endDate: Date = DateService().endOfDay(),
         text: String = "Всего"
-    ) -> some View {
+    ) async -> some View {
         
-        let transactions = transactionService.getTransactions(
+        let transactions = try! await transactionService.getTransactions(
             start: startDate,
             end: endDate,
             direction: direction
@@ -40,6 +40,13 @@ struct TransactionsView {
             }
         }
     }
+    
+    func totalRowView(
+        startDate: Date = DateService().startOfDay(),
+        endDate: Date = DateService().endOfDay(),
+    ) {
+        
+    }
 
     @ViewBuilder
      func transactionsSection(
@@ -47,9 +54,9 @@ struct TransactionsView {
         endDate: Date = DateService().endOfDay(),
         sortType: HistoryView.SortType = .date,
         onTransactionTap: @escaping (Transaction) -> Void
-    ) -> some View {
+     ) async -> some View {
         
-        let transactions = transactionService.getTransactions(
+        let transactions = try! await transactionService.getTransactions(
             start: startDate,
             end: endDate,
             direction: direction

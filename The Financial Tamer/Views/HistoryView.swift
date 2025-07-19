@@ -12,12 +12,14 @@ struct HistoryView: View {
     @ObservedObject var transactionsService: TransactionsService
     @ObservedObject var categoriesService: CategoriesService
     @ObservedObject var bankAccountsService: BankAccountsService
+    private let currencyService = CurrencyService()
 
     @State private var sortType: SortType = .date
     @State private var startDate = Date()
     @State private var endDate = Date()
     @State private var showingEditTransaction = false
     @State private var selectedTransaction: Transaction?
+    @State private var totalAmount: Decimal = 0
     
     @State private var transactions: [Transaction] = []
 
@@ -71,10 +73,16 @@ struct HistoryView: View {
                     }
                 }
                 .task{
-                    transactions = filteredTransactions
+                    Task{
+                        transactions = await filteredTransactions()
+                        totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
+                    }
                 }
                 .refreshable{
-                    transactions = filteredTransactions
+                    Task{
+                        transactions = await filteredTransactions()
+                        totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
+                    }
                 }
             }
             .background(Color(.systemGroupedBackground))
@@ -156,17 +164,27 @@ struct HistoryView: View {
             }
             
             
-            transactionsView.totalRowView(
-                text: "Сумма"
-            )
+            //transactionsView.totalRowView(
+            //    text: "Сумма"
+            //)
+            HStack {
+                Text("Всего")
+                Spacer()
+                if let first = transactions.first {
+                    Text("\( totalAmount ) \(currencyService.getSymbol(for: first.account.currency))")
+                } else {
+                    Text("\(totalAmount)")
+                }
+            }
         }
     }
 
-    private var filteredTransactions: [Transaction] {
-        let filtered = transactionsService.getTransactions(start: startDate, end: endDate, direction: direction, hardRefresh: true).filter {
-            $0.category.direction == direction &&
-            $0.transactionDate >= startDate &&
-            $0.transactionDate <= endDate
+    private func filteredTransactions() async -> [Transaction] {
+        
+        let filtered = try! await transactionsService.getTransactions(start: startDate, end: endDate, direction: direction, hardRefresh: true).filter {
+                $0.category.direction == direction &&
+                $0.transactionDate >= startDate &&
+                $0.transactionDate <= endDate
         }
         switch sortType {
         case .date:
@@ -174,8 +192,10 @@ struct HistoryView: View {
         case .amount:
             return filtered.sorted { $0.amount > $1.amount }
         }
-    }
 
+        return filtered
+        
+    }
 }
 
 extension HistoryView {
