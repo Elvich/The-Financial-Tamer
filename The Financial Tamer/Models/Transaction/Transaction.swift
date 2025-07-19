@@ -105,3 +105,44 @@ extension Transaction{
         ]
     }
 }
+
+struct TransactionDTO: Codable {
+    let id: Int
+    let account: TransactionAccount
+    let category: Category
+    let amount: Decimal
+    let transactionDate: Date
+    let comment: String
+    let createdAt: Date
+    let updatedAt: Date
+}
+
+extension Transaction {
+    func toDTO() -> TransactionDTO {
+        return TransactionDTO(
+            id: self.id,
+            account: self.account,
+            category: self.category,
+            amount: self.amount,
+            transactionDate: self.transactionDate,
+            comment: self.comment,
+            createdAt: self.createdAt,
+            updatedAt: self.updatedAt
+        )
+    }
+}
+
+extension TransactionDTO {
+    func toModel() -> Transaction {
+        return Transaction(
+            id: self.id,
+            account: self.account,
+            category: self.category,
+            amount: self.amount,
+            transactionDate: self.transactionDate,
+            comment: self.comment,
+            createdAt: self.createdAt,
+            updatedAt: self.updatedAt
+        )
+    }
+}

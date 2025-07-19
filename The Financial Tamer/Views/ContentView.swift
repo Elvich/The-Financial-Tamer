@@ -10,18 +10,11 @@ import SwiftData
 
 struct ContentView: View {
     
+    @Environment(\.modelContext) private var modelContext: ModelContext
     
-    @StateObject private var transactionsService: TransactionsService
-    @StateObject private var categoriesService: CategoriesService
-    @StateObject private var bankAccountsService: BankAccountsService
-    
-    init() {
-        let networkService = DefaultNetworkClient()
-        
-        _transactionsService = StateObject(wrappedValue: TransactionsService(networkClient: networkService))
-        _categoriesService = StateObject(wrappedValue: CategoriesService(networkClient: networkService))
-        _bankAccountsService = StateObject(wrappedValue: BankAccountsService(networkClient: networkService))
-    }
+    @StateObject private var transactionsService = TransactionsService(networkClient: DefaultNetworkClient())
+    @StateObject private var categoriesService = CategoriesService(networkClient: DefaultNetworkClient())
+    @StateObject private var bankAccountsService = BankAccountsService(networkClient: DefaultNetworkClient())
     
     var body: some View {
         TabView {
