@@ -90,9 +90,14 @@ final class TransactionsService: ObservableObject {
                 _ = await transactionsStorage.createTransaction(transaction)
             }
             
+            // Очищаем ошибку сети при успешном запросе
+            NetworkStatusService.shared.clearNetworkError()
+            
             return transactions
         } catch {
             // 4. При ошибке — возвращаем данные из локального хранилища и бэкапа
+            NetworkStatusService.shared.markNetworkError(error)
+            
             let localTransactions = await transactionsStorage.getAllTransactions()
             let backupActions = await backupStorage.getAllActions()
             let backupTransactions = backupActions.compactMap { $0.transaction }

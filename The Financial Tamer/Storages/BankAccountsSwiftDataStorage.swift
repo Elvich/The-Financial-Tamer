@@ -12,11 +12,11 @@ import _SwiftData_SwiftUI
 
 final class BankAccountsSwiftDataStorage: BankAccountsStorage {
     
-    @Query private var accounts: [BankAccountEntity]
+    @Query private var accounts: [BankAccountSwiftDataEntity]
     @Environment(\.modelContext) private var context
     
     func getAllAccounts() async -> [BankAccount] {
-        return accounts.map { $0.toModel() }
+        return accounts.compactMap { $0.toModel() }
     }
     
     func updateAccount(_ account: BankAccount) async -> Bool {
@@ -41,7 +41,7 @@ final class BankAccountsSwiftDataStorage: BankAccountsStorage {
             return false
         }
         
-        let entity = BankAccountEntity(from: account)
+        let entity = BankAccountSwiftDataEntity(from: account)
         context.insert(entity)
         return true
     }

@@ -12,20 +12,23 @@ import _SwiftData_SwiftUI
 
 final class TransactionsSwiftDataStorage: TransactionsStorage {
     
-    @Query private var transactions: [Transaction]
+    @Query private var transactions: [TransactionSwiftDataEntity]
     @Environment(\.modelContext) private var context
     
     func getAllTransactions() async -> [Transaction] {
-        transactions
+        return transactions.compactMap { $0.toModel() }
     }
     
     func updateTransaction(_ transaction: Transaction) async -> Bool {
-        context.insert(transaction)
-        return true 
+        if let existingEntity = transactions.first(where: { $0.id == transaction.id }) {
+            existingEntity.updateFromModel(transaction)
+            return true
+        }
+        return false
     }
     
     func deleteTransaction(id: Int) async -> Bool {
-        guard let index = transactions.firstIndex(where: {$0.id == id}) else {
+        guard let index = transactions.firstIndex(where: { $0.id == id }) else {
             return false
         }
         
@@ -34,9 +37,12 @@ final class TransactionsSwiftDataStorage: TransactionsStorage {
     }
     
     func createTransaction(_ transaction: Transaction) async -> Bool {
-        context.insert(transaction)
+        if transactions.contains(where: { $0.id == transaction.id }) {
+            return false
+        }
+        
+        let entity = TransactionSwiftDataEntity(from: transaction)
+        context.insert(entity)
         return true
     }
-    
-    
 }

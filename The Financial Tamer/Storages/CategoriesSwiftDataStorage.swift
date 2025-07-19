@@ -12,11 +12,11 @@ import _SwiftData_SwiftUI
 
 final class CategoriesSwiftDataStorage: CategoriesStorage {
     
-    @Query private var categories: [CategoryEntity]
+    @Query private var categories: [CategorySwiftDataEntity]
     @Environment(\.modelContext) private var context
     
     func getAllCategories() async -> [Category] {
-        return categories.map { $0.toModel() }
+        return categories.compactMap { $0.toModel() }
     }
     
     func updateCategory(_ category: Category) async -> Bool {
@@ -41,7 +41,7 @@ final class CategoriesSwiftDataStorage: CategoriesStorage {
             return false
         }
         
-        let entity = CategoryEntity(from: category)
+        let entity = CategorySwiftDataEntity(from: category)
         context.insert(entity)
         return true
     }
@@ -54,7 +54,7 @@ final class CategoriesSwiftDataStorage: CategoriesStorage {
         
         // Добавляем новые категории
         for category in categories {
-            let entity = CategoryEntity(from: category)
+            let entity = CategorySwiftDataEntity(from: category)
             context.insert(entity)
         }
     }

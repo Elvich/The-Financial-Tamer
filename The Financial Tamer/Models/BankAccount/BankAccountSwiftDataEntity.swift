@@ -1,28 +1,39 @@
 //
-//  BankAccountEntity.swift
+//  BankAccountSwiftDataEntity.swift
 //  The Financial Tamer
 //
 //  Created by Maksim Gritsuk on 19.07.2025.
 //
 
 import Foundation
-import CoreData
+import SwiftData
 
-extension CoreDataBankAccountEntity {
+@Model
+final class BankAccountSwiftDataEntity {
+    var id: Int32
+    var userId: Int32
+    var name: String
+    var balance: Decimal
+    var currency: String
+    var createdAt: Date
+    var updatedAt: Date
+    
+    init(from account: BankAccount) {
+        self.id = Int32(account.id)
+        self.userId = Int32(account.userId)
+        self.name = account.name
+        self.balance = account.balance
+        self.currency = account.currency
+        self.createdAt = account.createdAt
+        self.updatedAt = account.updatedAt
+    }
+    
     func toModel() -> BankAccount? {
-        guard let name = name,
-              let currency = currency,
-              let balance = balance,
-              let createdAt = createdAt,
-              let updatedAt = updatedAt else {
-            return nil
-        }
-        
         return BankAccount(
             id: Int(id),
             userId: Int(userId),
             name: name,
-            balance: balance as Decimal,
+            balance: balance,
             currency: currency,
             createdAt: createdAt,
             updatedAt: updatedAt
@@ -33,7 +44,7 @@ extension CoreDataBankAccountEntity {
         self.id = Int32(account.id)
         self.userId = Int32(account.userId)
         self.name = account.name
-        self.balance = NSDecimalNumber(decimal: account.balance)
+        self.balance = account.balance
         self.currency = account.currency
         self.createdAt = account.createdAt
         self.updatedAt = account.updatedAt
