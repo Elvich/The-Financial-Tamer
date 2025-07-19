@@ -6,10 +6,15 @@
 //
 
 import Foundation
+import SwiftUI
+import SwiftData
 
 final class CategoriesService: ObservableObject {
     private let networkClient: NetworkClient
+    private let categoriesStorage = CategoriesSwiftDataStorage()
     @Published private(set) var categories: [Category] = []
+    
+    @Environment(\.modelContext) private var  modelContext: ModelContext
     
     init(networkClient: NetworkClient) {
         self.networkClient = networkClient
@@ -39,6 +44,10 @@ final class CategoriesService: ObservableObject {
                 }
             }
         }
+        
+        // Сохраняем в локальное хранилище
+        await categoriesStorage.saveCategories(categories)
+        
         await MainActor.run {
             self.categories = categories
         }
@@ -48,6 +57,12 @@ final class CategoriesService: ObservableObject {
     func categories(for direction: Direction = .all, hardRefresh: Bool = false) async throws -> [Category] {
         if categories.isEmpty || hardRefresh {
             categories = try await fetchCategories()
+        } else {
+            // Загружаем из локального хранилища
+            let localCategories = await categoriesStorage.getAllCategories()
+            await MainActor.run {
+                self.categories = localCategories
+            }
         }
         
         return direction != .all ? categories.filter { $0.direction == direction } : categories

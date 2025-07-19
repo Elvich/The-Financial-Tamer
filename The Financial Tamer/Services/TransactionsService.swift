@@ -15,10 +15,14 @@ final class TransactionsService: ObservableObject {
     
     private let transactionsStorage = TransactionsSwiftDataStorage()
     private var _backupStorage: BackupStorage?
+    private var _backupBankAccountStorage: BackupBankAccountStorage?
+    private var accountBalanceService: AccountBalanceService?
+    
     var modelContext: ModelContext? {
         didSet {
             if let context = modelContext {
                 _backupStorage = BackupStorageSwiftData()
+                _backupBankAccountStorage = BackupBankAccountStorageSwiftData()
             }
         }
     }
@@ -29,11 +33,22 @@ final class TransactionsService: ObservableObject {
         }
         return storage
     }
+    
+    private var backupBankAccountStorage: BackupBankAccountStorage {
+        guard let storage = _backupBankAccountStorage else {
+            fatalError("BackupBankAccountStorage is not initialized. Set modelContext first.")
+        }
+        return storage
+    }
 
     init(networkClient: NetworkClient) {
         self.networkClient = networkClient
         self.dateService = DateService()
         // backupStorage будет инициализирован после установки modelContext
+    }
+    
+    func setBankAccountsService(_ bankAccountsService: BankAccountsService) {
+        self.accountBalanceService = AccountBalanceService(bankAccountsService: bankAccountsService)
     }
     
     
@@ -92,76 +107,112 @@ final class TransactionsService: ObservableObject {
     
     // MARK: - Add Transaction
     func add(_ transaction: Transaction) async throws -> Transaction {
-        let body = transaction.jsonObjectPOST
-        _ = try await networkClient.request(
-            endpoint: "transactions",
-            method: .post,
-            queryItems: nil,
-            body: body,
-            headers: ["Content-Type": "application/json"]
-        )
-        //guard let newTransaction = try? await Transaction.parse(jsonObject: raw) else {
-        //    throw NSError(domain: "TransactionsService", code: 3, userInfo: [NSLocalizedDescriptionKey: "Failed to parse new transaction"])
-        //}
-        //await MainActor.run {
-        //    self.transactions.append(newTransaction)
-        //}
-        _ = await transactionsStorage.createTransaction(transaction)
-        // Добавляем в backup
-        let backupAction = BackupTransactionAction(
-            id: transaction.id,
-            actionType: .create,
-            transaction: transaction.toDTO(),
-            timestamp: Date()
-        )
-        backupStorage.addAction(backupAction)
-        
-        return transaction
+        do {
+            let body = transaction.jsonObjectPOST
+            _ = try await networkClient.request(
+                endpoint: "transactions",
+                method: .post,
+                queryItems: nil,
+                body: body,
+                headers: ["Content-Type": "application/json"]
+            )
+            
+            // При успехе повторяем действие в локальном хранилище
+            _ = await transactionsStorage.createTransaction(transaction)
+            
+            // Удаляем из бэкапа неактуальные операции
+            backupStorage.removeAction(for: transaction.id)
+            
+            // Обновляем баланс счета
+            await updateAccountBalance(for: transaction)
+            
+            return transaction
+        } catch {
+            // При провале добавляем операцию в бэкап
+            let backupAction = BackupTransactionAction(
+                id: transaction.id,
+                actionType: .create,
+                transaction: transaction.toDTO(),
+                timestamp: Date()
+            )
+            backupStorage.addAction(backupAction)
+            
+            // Также добавляем изменение счета в бэкап
+            await addAccountBalanceBackup(for: transaction)
+            
+            throw error
+        }
     }
     
     // MARK: - Update Transaction
     func update(_ transaction: Transaction) async throws -> Transaction {
-        let body = transaction.jsonObjectPOST
-        _ = try await networkClient.request(
-            endpoint: "transactions/\(transaction.id)",
-            method: .put,
-            queryItems: nil,
-            body: body,
-            headers: ["Content-Type": "application/json"]
-        )
-        
-        _ = await transactionsStorage.updateTransaction(transaction)
-        // Добавляем в backup
-        let backupAction = BackupTransactionAction(
-            id: transaction.id,
-            actionType: .update,
-            transaction: transaction.toDTO(),
-            timestamp: Date()
-        )
-        backupStorage.addAction(backupAction)
-        
-        return transaction
+        do {
+            let body = transaction.jsonObjectPOST
+            _ = try await networkClient.request(
+                endpoint: "transactions/\(transaction.id)",
+                method: .put,
+                queryItems: nil,
+                body: body,
+                headers: ["Content-Type": "application/json"]
+            )
+            
+            // При успехе повторяем действие в локальном хранилище
+            _ = await transactionsStorage.updateTransaction(transaction)
+            
+            // Удаляем из бэкапа неактуальные операции
+            backupStorage.removeAction(for: transaction.id)
+            
+            // Обновляем баланс счета
+            await updateAccountBalance(for: transaction)
+            
+            return transaction
+        } catch {
+            // При провале добавляем операцию в бэкап
+            let backupAction = BackupTransactionAction(
+                id: transaction.id,
+                actionType: .update,
+                transaction: transaction.toDTO(),
+                timestamp: Date()
+            )
+            backupStorage.addAction(backupAction)
+            
+            // Также добавляем изменение счета в бэкап
+            await addAccountBalanceBackup(for: transaction)
+            
+            throw error
+        }
     }
     
     // MARK: - Delete Transaction
     func delete(id: Int) async throws -> Bool {
-        _ = try await networkClient.request(
-            endpoint: "transactions/\(id)",
-            method: .delete,
-            queryItems: nil,
-            body: nil,
-            headers: nil
-        )
-        let result = await transactionsStorage.deleteTransaction(id: id)
-        // Добавляем в backup
-        let backupAction = BackupTransactionAction(
-            id: id,
-            actionType: .delete,
-            transaction: nil,
-            timestamp: Date()
-        )
-        backupStorage.addAction(backupAction)
-        return result
+        do {
+            _ = try await networkClient.request(
+                endpoint: "transactions/\(id)",
+                method: .delete,
+                queryItems: nil,
+                body: nil,
+                headers: nil
+            )
+            
+            // При успехе повторяем действие в локальном хранилище
+            let result = await transactionsStorage.deleteTransaction(id: id)
+            
+            // Удаляем из бэкапа неактуальные операции
+            backupStorage.removeAction(for: id)
+            
+            return result
+        } catch {
+            // При провале добавляем операцию в бэкап
+            let backupAction = BackupTransactionAction(
+                id: id,
+                actionType: .delete,
+                transaction: nil,
+                timestamp: Date()
+            )
+            backupStorage.addAction(backupAction)
+            
+            throw error
+        }
     }
     
     // MARK: - Local Filtering (optional, for convenience)
@@ -190,6 +241,38 @@ final class TransactionsService: ObservableObject {
         }
         return filtered.filter {
             $0.transactionDate >= start && $0.transactionDate <= end
+        }
+    }
+    
+    // MARK: - Account Balance Management
+    
+    private func updateAccountBalance(for transaction: Transaction) async {
+        guard let accountBalanceService = accountBalanceService else {
+            print("AccountBalanceService not initialized")
+            return
+        }
+        
+        do {
+            try await accountBalanceService.updateBalanceForTransaction(transaction)
+        } catch {
+            print("Failed to update account balance: \(error)")
+        }
+    }
+    
+    private func addAccountBalanceBackup(for transaction: Transaction) async {
+        // Получаем BankAccount по id
+        do {
+            guard let accountBalanceService = accountBalanceService else { return }
+            let bankAccount = try await accountBalanceService.bankAccountsService.getAccount(id: transaction.account.id)
+            let backupAction = BackupBankAccountAction(
+                id: bankAccount.id,
+                actionType: .update,
+                account: bankAccount.toDTO(),
+                timestamp: Date()
+            )
+            backupBankAccountStorage.addAction(backupAction)
+        } catch {
+            print("Не удалось добавить в бэкап изменение счета: \(error)")
         }
     }
 }

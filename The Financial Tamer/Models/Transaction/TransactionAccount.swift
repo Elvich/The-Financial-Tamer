@@ -14,6 +14,13 @@ struct TransactionAccount: Hashable, Equatable, Codable {
     let currency: String
 }
 
+struct TransactionAccountDTO: Codable {
+    let id: Int
+    let name: String
+    let balance: Decimal
+    let currency: String
+}
+
 extension TransactionAccount{
     static func parse(jsonObject: Any) async throws -> TransactionAccount?{
         guard let dict = jsonObject as? [String: Any] else {
@@ -36,5 +43,27 @@ extension TransactionAccount{
     
     static func parse(account: BankAccount) async throws -> TransactionAccount?{
         return TransactionAccount(id: account.id, name: account.name, balance: account.balance, currency: account.currency)
+    }
+}
+
+extension TransactionAccount {
+    func toDTO() -> TransactionAccountDTO {
+        return TransactionAccountDTO(
+            id: self.id,
+            name: self.name,
+            balance: self.balance,
+            currency: self.currency
+        )
+    }
+}
+
+extension TransactionAccountDTO {
+    func toModel() -> TransactionAccount {
+        return TransactionAccount(
+            id: self.id,
+            name: self.name,
+            balance: self.balance,
+            currency: self.currency
+        )
     }
 }

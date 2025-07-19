@@ -12,7 +12,11 @@ import SwiftData
 struct The_Financial_TamerApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Transaction.self
+            Transaction.self,
+            BankAccountEntity.self,
+            CategoryEntity.self,
+            BackupTransactionActionEntity.self,
+            BackupBankAccountActionEntity.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

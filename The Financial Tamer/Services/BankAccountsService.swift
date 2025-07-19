@@ -6,12 +6,30 @@
 //
 
 import Foundation
+import SwiftData
+import SwiftUI
 
 final class BankAccountsService: ObservableObject {
     
     // MARK: - Properties
     private let networkClient: NetworkClient
-    private var bankAccounts: [BankAccount] = []
+    private let bankAccountsStorage = BankAccountsSwiftDataStorage()
+    private var _backupStorage: BackupBankAccountStorage?
+    
+    var modelContext: ModelContext? {
+        didSet {
+            if let context = modelContext {
+                _backupStorage = BackupBankAccountStorageSwiftData()
+            }
+        }
+    }
+    
+    private var backupStorage: BackupBankAccountStorage {
+        guard let storage = _backupStorage else {
+            fatalError("BackupBankAccountStorage is not initialized. Set modelContext first.")
+        }
+        return storage
+    }
     
     // MARK: - Initialization
     init(networkClient: NetworkClient) {
@@ -47,12 +65,19 @@ final class BankAccountsService: ObservableObject {
             }
         }
         
+        // Сохраняем в локальное хранилище
+        for account in accounts {
+            _ = await bankAccountsStorage.createAccount(account)
+        }
+        
         return accounts
     }
     
     func getAccount(id: Int = 0, hardRefresh: Bool = false) async throws -> BankAccount {
-        if bankAccounts.isEmpty || hardRefresh {
-            bankAccounts = try await fetchAccounts()
+        var accounts: [BankAccount] = await bankAccountsStorage.getAllAccounts()
+        
+        if accounts.isEmpty || hardRefresh {
+            accounts = try await fetchAccounts()
         }
 
         guard id >= 0 else {
@@ -61,40 +86,25 @@ final class BankAccountsService: ObservableObject {
             ])
         }
         
-        if id == 0 { return bankAccounts[0]}
+        if id == 0 { return accounts[0]}
         
-        guard let index = bankAccounts.firstIndex(where: { $0.id == id }) else {
+        guard let account = accounts.first(where: { $0.id == id }) else {
             throw NSError(domain: "BankAccountsService", code: 3, userInfo: [
                 NSLocalizedDescriptionKey: "Account with ID \(id) not found for update"
             ])
         }
         
-        return bankAccounts[index]
+        return account
     }
         
     func update(from account: inout BankAccount) async throws {
-        // Находим индекс аккаунта по ID
-        guard let index = bankAccounts.firstIndex(where: { $0.id == account.id }) else {
-            throw NSError(domain: "BankAccountsService", code: 3, userInfo: [
-                NSLocalizedDescriptionKey: "Account with ID \(account.id) not found for update"
-            ])
-        }
-        
-        // Сохраняем старое состояние для возможного отката
-        let oldAccount = bankAccounts[index]
-        
-        // Обновляем дату изменения
-        account.updatedAt = Date()
-        
-        print("[BankAccountsService] Локально обновляем аккаунт с id = \(account.id)")
-        // Оптимистично обновляем локально на главном потоке
-        await MainActor.run {
-            bankAccounts[index] = account
-        }
-        
         do {
+            // Обновляем дату изменения
+            account.updatedAt = Date()
+            
             // Сериализуем аккаунт в JSON
             let body = account.jsonObject
+            
             // Отправляем PUT-запрос на сервер
             print("[BankAccountsService] Отправляем PUT на сервер для аккаунта id = \(account.id)")
             let raw = try await networkClient.request(
@@ -104,22 +114,32 @@ final class BankAccountsService: ObservableObject {
                 body: body,
                 headers: ["Content-Type": "application/json"]
             )
+            
+            // При успехе повторяем действие в локальном хранилище
+            _ = await bankAccountsStorage.updateAccount(account)
+            
+            // Удаляем из бэкапа неактуальные операции
+            backupStorage.removeAction(for: account.id)
+            
             // Парсим ответ сервера (если сервер возвращает обновлённый объект)
             if let updatedAccount = try? await BankAccount.parse(jsonObject: raw) {
                 print("[BankAccountsService] Сервер успешно обновил аккаунт id = \(updatedAccount.id)")
-                await MainActor.run {
-                    bankAccounts[index] = updatedAccount
-                }
+                _ = await bankAccountsStorage.updateAccount(updatedAccount)
             } else {
                 print("[BankAccountsService] Сервер вернул неожиданный ответ для аккаунта id = \(account.id)")
             }
         } catch {
             print("[BankAccountsService] Ошибка при обновлении аккаунта id = \(account.id) на сервере: \(error)")
-            // В случае ошибки откатываем локальные изменения
-            await MainActor.run {
-                bankAccounts[index] = oldAccount
-            }
-            print("[BankAccountsService] Откатили локальные изменения для аккаунта id = \(account.id)")
+            
+            // При провале добавляем операцию в бэкап
+            let backupAction = BackupBankAccountAction(
+                id: account.id,
+                actionType: .update,
+                account: account.toDTO(),
+                timestamp: Date()
+            )
+            backupStorage.addAction(backupAction)
+            
             throw error
         }
     }
