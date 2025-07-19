@@ -20,37 +20,50 @@ struct TransactionsView {
         startDate: Date = DateService().startOfDay(),
         endDate: Date = DateService().endOfDay(),
         text: String = "Всего"
-    ) -> some View {
-        let transactions = transactionService.getTransactions(
+    ) async -> some View {
+        
+        let transactions = try! await transactionService.getTransactions(
             start: startDate,
             end: endDate,
             direction: direction
         )
+        
         let totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
 
         HStack {
             Text(text)
             Spacer()
-            Text(
-                "\(totalAmount) \(currencyService.getSymbol(for: transactions[0].account.currency))"
-            )
+            if let first = transactions.first {
+                Text("\(totalAmount) \(currencyService.getSymbol(for: first.account.currency))")
+            } else {
+                Text("\(totalAmount)")
+            }
         }
+    }
+    
+    func totalRowView(
+        startDate: Date = DateService().startOfDay(),
+        endDate: Date = DateService().endOfDay(),
+    ) {
+        
     }
 
     @ViewBuilder
-    func transactionsSection(
+     func transactionsSection(
         startDate: Date = DateService().startOfDay(),
         endDate: Date = DateService().endOfDay(),
         sortType: HistoryView.SortType = .date,
         onTransactionTap: @escaping (Transaction) -> Void
-    ) -> some View {
-        let transactions: [Transaction] = transactionService.getTransactions(
+     ) async -> some View {
+        
+        let transactions = try! await transactionService.getTransactions(
             start: startDate,
             end: endDate,
             direction: direction
         )
-
+        
         let sortedTransactions = sortTransactions(transactions, sortType)
+        
 
         Section(header: Text("Операции")) {
             ForEach(sortedTransactions, id: \.self) { transition in
@@ -70,6 +83,7 @@ struct TransactionsView {
                 .buttonStyle(PlainButtonStyle())
             }
         }
+        
     }
 
     private func sortTransactions(

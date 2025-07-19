@@ -12,22 +12,27 @@ struct HistoryView: View {
     @ObservedObject var transactionsService: TransactionsService
     @ObservedObject var categoriesService: CategoriesService
     @ObservedObject var bankAccountsService: BankAccountsService
+    private let currencyService = CurrencyService()
 
     @State private var sortType: SortType = .date
     @State private var startDate = Date()
     @State private var endDate = Date()
     @State private var showingEditTransaction = false
     @State private var selectedTransaction: Transaction?
+    @State private var totalAmount: Decimal = 0
+    
+    @State private var transactions: [Transaction] = []
 
     let dateService = DateService()
     let transactionsView: TransactionsView
 
     init(direction: Direction, transactionsService: TransactionsService, categoriesService: CategoriesService, bankAccountsService: BankAccountsService) {
         self.direction = direction
-        transactionsView = TransactionsView(transactionService: transactionsService, direction: direction)
         self.transactionsService = transactionsService
         self.categoriesService = categoriesService
         self.bankAccountsService = bankAccountsService
+        
+        transactionsView = TransactionsView(transactionService: transactionsService, direction: direction)
         
 
         let monthAgo = dateService.calendar.date(
@@ -42,30 +47,51 @@ struct HistoryView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            VStack{
                 transactionsSettingsSection()
-                Section(header: Text("Операции")) {
-                    ForEach(filteredTransactions) { transaction in
-                        Button(action: {
-                            selectedTransaction = transaction
-                            showingEditTransaction = true
-                        }) {
-                            HStack {
-                                Text("\(transaction.category.emoji)    \(transaction.category.name)")
-                                Spacer()
-                                Text("\(transaction.amount) RUB")
+                    .padding(12)
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal, 16)
+                
+                List {
+                    //transactionsSettingsSection()
+                    Section(header: Text("Операции")) {
+                        ForEach(transactions) { transaction in
+                            Button(action: {
+                                selectedTransaction = transaction
+                                showingEditTransaction = true
+                            }) {
+                                HStack {
+                                    Text("\(transaction.category.emoji)    \(transaction.category.name)")
+                                    Spacer()
+                                    Text("\(transaction.amount) RUB")
+                                }
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                .task{
+                    Task{
+                        transactions = await filteredTransactions()
+                        totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
+                    }
+                }
+                .refreshable{
+                    Task{
+                        transactions = await filteredTransactions()
+                        totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
                     }
                 }
             }
+            .background(Color(.systemGroupedBackground))
             .padding(.bottom)
         }
         .navigationTitle("Моя история")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                NavigationLink(destination: AnalysisViewControllerWrapper(direction: direction)
+                NavigationLink(destination: AnalysisViewControllerWrapper(direction: direction, transactionService: transactionsService)
                     .navigationTitle("Анализ")
                     .navigationBarTitleDisplayMode(.large)
                     .toolbarBackground(Color(.systemGroupedBackground), for: .navigationBar)
@@ -86,62 +112,90 @@ struct HistoryView: View {
     @ViewBuilder
     private func transactionsSettingsSection() -> some View {
 
-        HStack {
-            Text("Начало")
-            Spacer()
-
-            DatePicker("", selection: $startDate, displayedComponents: .date)
-                .labelsHidden()
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.accentColor.opacity(0.12))
-                )
-                .foregroundColor(.primary)
-                .onChange(of: startDate) { _, newDate in
-                    endDate =
-                        newDate > endDate
-                        ? dateService.startOfDay(date: newDate) : endDate
+        VStack{
+            HStack {
+                Text("Начало")
+                Spacer()
+                
+                DatePicker("", selection: $startDate, displayedComponents: .date)
+                    .labelsHidden()
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.accentColor.opacity(0.12))
+                    )
+                    .foregroundColor(.primary)
+                    .onChange(of: startDate) { _, newDate in
+                        let normalizedStart = dateService.startOfDay(date: newDate)
+                        if normalizedStart > endDate {
+                            endDate = dateService.endOfDay(date: normalizedStart)
+                        }
+                        startDate = normalizedStart
+                    }
+            }
+            
+            HStack {
+                Text("Конец")
+                Spacer()
+                DatePicker("", selection: $endDate, displayedComponents: .date)
+                    .labelsHidden()
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.accentColor.opacity(0.12))
+                    )
+                    .foregroundColor(.primary)
+                    .onChange(of: endDate) { _, newDate in
+                        let normalizedEnd = dateService.endOfDay(date: newDate)
+                        if normalizedEnd < startDate {
+                            startDate = dateService.startOfDay(date: normalizedEnd)
+                        }
+                        endDate = normalizedEnd
+                    }
+            }
+            
+            HStack {
+                Text("Cортировать по ")
+                Spacer()
+                Picker("", selection: $sortType) {
+                    ForEach(SortType.allCases, id: \.self) { type in
+                        Text(type.rawValue).tag(type)
+                    }
                 }
-        }
-
-        HStack {
-            Text("Конец")
-            Spacer()
-            DatePicker("", selection: $endDate, displayedComponents: .date)
-                .labelsHidden()
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.accentColor.opacity(0.12))
-                )
-                .foregroundColor(.primary)
-                .onChange(of: endDate) { _, newDate in
-                    startDate =
-                        newDate < startDate
-                        ? dateService.endOfDay(date: newDate) : startDate
-                }
-        }
-
-        HStack {
-
-            Picker("Сортировать по", selection: $sortType) {
-                ForEach(SortType.allCases, id: \.self) { type in
-                    Text(type.rawValue).tag(type)
+                .pickerStyle(.palette)
+            }
+            
+            
+            //transactionsView.totalRowView(
+            //    text: "Сумма"
+            //)
+            HStack {
+                Text("Всего")
+                Spacer()
+                if let first = transactions.first {
+                    Text("\( totalAmount ) \(currencyService.getSymbol(for: first.account.currency))")
+                } else {
+                    Text("\(totalAmount)")
                 }
             }
         }
-
-        transactionsView.totalRowView(
-            startDate: startDate,
-            endDate: endDate,
-            text: "Сумма"
-        )
-
     }
 
-    private var filteredTransactions: [Transaction] {
-        transactionsService.transactions.filter { $0.category.direction == direction }
-    }
+    private func filteredTransactions() async -> [Transaction] {
+        
+        let filtered = try! await transactionsService.getTransactions(start: startDate, end: endDate, direction: direction, hardRefresh: true).filter {
+                $0.category.direction == direction &&
+                $0.transactionDate >= startDate &&
+                $0.transactionDate <= endDate
+        }
+        switch sortType {
+        case .date:
+            return filtered.sorted { $0.transactionDate > $1.transactionDate }
+        case .amount:
+            return filtered.sorted { $0.amount > $1.amount }
+        }
 
+        return filtered
+        
+    }
 }
 
 extension HistoryView {
@@ -153,8 +207,8 @@ extension HistoryView {
 
 #Preview {
     HistoryView(direction: .outcome,
-                transactionsService: TransactionsService(),
-                categoriesService: CategoriesService(),
-                bankAccountsService: BankAccountsService()
+                transactionsService: TransactionsService(networkClient: DefaultNetworkClient()),
+                categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
+                bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )
 }

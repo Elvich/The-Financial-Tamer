@@ -62,8 +62,8 @@
             filePath = "The Financial Tamer/Models/Transaction/Transaction.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "49"
-            endingLineNumber = "49"
+            startingLineNumber = "64"
+            endingLineNumber = "64"
             landmarkName = "parse(jsonObject:)"
             landmarkType = "7">
          </BreakpointContent>

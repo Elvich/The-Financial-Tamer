@@ -12,8 +12,14 @@ struct TransactionsListView: View {
     @ObservedObject var transactionsService: TransactionsService
     let categoriesService: CategoriesService
     let bankAccountsService: BankAccountsService
+    private let currencyService = CurrencyService()
     @State private var showingCreateTransaction = false
     @State private var selectedTransaction: Transaction? = nil
+    
+    @State private var transactions: [Transaction] = []
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    @State private var totalAmount: Decimal = 0
     
     private var title: String {
         (direction == .outcome ? "Расходы" : "Доходы") + " сегодня"
@@ -21,28 +27,50 @@ struct TransactionsListView: View {
     
     var body: some View {
         NavigationStack {
-            List {
-                TransactionsView(transactionService: transactionsService, direction: direction).totalRowView()
-                transactionsSection
-            }
-            .padding(.bottom)
-            .navigationTitle(title)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    NavigationLink(
-                        destination: HistoryView(
-                            direction: direction,
-                            transactionsService: transactionsService,
-                            categoriesService: categoriesService,
-                            bankAccountsService: bankAccountsService
-                        )
-                    ) {
-                        Image(systemName: "clock")
-                            .foregroundColor(.purple)
+            ZStack{
+                VStack{
+                    //TransactionsView(transactionService: transactionsService, direction: direction).totalRowView()
+                      //  .padding(16)
+                        //.background(Color(.systemBackground))
+                        //.cornerRadius(12)
+                        //.padding(.horizontal, 16)
+                    
+                    HStack {
+                        Text("Всего")
+                        Spacer()
+                        if let first = transactions.first {
+                            Text("\(totalAmount) \(currencyService.getSymbol(for: first.account.currency))")
+                        } else {
+                            Text("\(totalAmount)")
+                        }
+                    }
+                    .padding(16)
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal, 16)
+                
+                    
+                    if isLoading {
+                        ProgressView()
+                        
+                    } else if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                    } else {
+                        List {
+                            transactionsSection
+                        }
                     }
                 }
-            }
-            .overlay(
+                .background(Color(.systemGroupedBackground))
+                .padding(.bottom)
+                .navigationTitle(title)
+                .task {
+                    await loadTransactions()
+                }
+                .refreshable {
+                    await loadTransactions(hardRefresh: true)
+                }
                 VStack {
                     Spacer()
                     HStack {
@@ -63,7 +91,24 @@ struct TransactionsListView: View {
                         .padding(.bottom, 20)
                     }
                 }
-            )
+            }
+            .background(Color(.systemGroupedBackground))
+            .padding(.bottom)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    NavigationLink(
+                        destination: HistoryView(
+                            direction: direction,
+                            transactionsService: transactionsService,
+                            categoriesService: categoriesService,
+                            bankAccountsService: bankAccountsService
+                        )
+                    ) {
+                        Image(systemName: "clock")
+                            .foregroundColor(.purple)
+                    }
+                }
+            }
             .sheet(isPresented: $showingCreateTransaction) {
                 TransactionEditView(mode: .create, direction: direction, transaction: nil, transactionsService: transactionsService, categoriesService: categoriesService, bankAccountsService: bankAccountsService)
             }
@@ -80,13 +125,23 @@ struct TransactionsListView: View {
         }
     }
     
-    private var filteredTransactions: [Transaction] {
-        transactionsService.transactions.filter { $0.category.direction == direction }
+    private func loadTransactions(hardRefresh: Bool = false) async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            let start = DateService().startOfDay()
+            let end = DateService().endOfDay()
+            transactions = try await transactionsService.getTransactions(start: start, end: end, direction: direction, hardRefresh: hardRefresh)
+        } catch {
+            errorMessage = "Ошибка загрузки: \(error.localizedDescription)"
+        }
+        isLoading = false
+        totalAmount = transactions.reduce(Decimal.zero) { $0 + $1.amount }
     }
     
     private var transactionsSection: some View {
-        return Section(header: Text("Операции")) {
-            ForEach(filteredTransactions) { transaction in
+        Section(header: Text("Операции")) {
+            ForEach(transactions) { transaction in
                 Button(action: {
                     selectedTransaction = transaction
                 }) {
@@ -105,8 +160,8 @@ struct TransactionsListView: View {
 #Preview {
     TransactionsListView(
         direction: .income,
-        transactionsService: TransactionsService(),
-        categoriesService: CategoriesService(),
-        bankAccountsService: BankAccountsService()
+        transactionsService: TransactionsService(networkClient: DefaultNetworkClient()),
+        categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
+        bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )
 }

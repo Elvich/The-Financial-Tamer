@@ -7,157 +7,277 @@
 
 import Foundation
 import Combine
+import SwiftData
 
 final class TransactionsService: ObservableObject {
-    @Published private(set) var transactions: [Transaction] = [
-        Transaction(
-            id: 0,
-            account: BankAccount(
-                id: 0,
-                userId: 0,
-                name: "Иван Иванович",
-                balance: 150000.00,
-                currency: "RUB",
-                createdAt: Date(),
-                updatedAt: Date()
-            ),
-            category: Category(
-                id: 2,
-                name: "ЯндексGO",
-                emoji: "🚕",
-                direction: .outcome
-            ),
-            amount: 150.00,
-            transactionDate: Date(),
-            comment: "Люблю такси",
-            createdAt: Date(),
-            updatedAt: Date()
-        ),
+    private let networkClient: NetworkClient
+    private let dateService: DateService
+    
+    private let transactionsStorage = TransactionsSwiftDataStorage()
+    private var _backupStorage: BackupStorage?
+    private var _backupBankAccountStorage: BackupBankAccountStorage?
+    private var accountBalanceService: AccountBalanceService?
+    
+    var modelContext: ModelContext? {
+        didSet {
+            if let context = modelContext {
+                _backupStorage = BackupStorageSwiftData()
+                _backupBankAccountStorage = BackupBankAccountStorageSwiftData()
+            }
+        }
+    }
+    
+    private var backupStorage: BackupStorage {
+        guard let storage = _backupStorage else {
+            fatalError("BackupStorage is not initialized. Set modelContext first.")
+        }
+        return storage
+    }
+    
+    private var backupBankAccountStorage: BackupBankAccountStorage {
+        guard let storage = _backupBankAccountStorage else {
+            fatalError("BackupBankAccountStorage is not initialized. Set modelContext first.")
+        }
+        return storage
+    }
 
-        Transaction(
-            id: 1,
-            account: BankAccount(
-                id: 0,
-                userId: 0,
-                name: "Иван Иванович",
-                balance: 150000.00,
-                currency: "RUB",
-                createdAt: Date(),
-                updatedAt: Date()
-            ),
-            category: Category(
-                id: 1,
-                name: "ЗП",
-                emoji: "💰",
-                direction: .income
-            ),
-            amount: 300000.00,
-            transactionDate: Date(),
-            comment: "Ура, я могу покушать =)",
-            createdAt: Date(),
-            updatedAt: Date()
-        ),
+    init(networkClient: NetworkClient) {
+        self.networkClient = networkClient
+        self.dateService = DateService()
+        // backupStorage будет инициализирован после установки modelContext
+    }
+    
+    func setBankAccountsService(_ bankAccountsService: BankAccountsService) {
+        self.accountBalanceService = AccountBalanceService(bankAccountsService: bankAccountsService)
+    }
+    
+    
+    
+    // MARK: - Fetch Transactions by Account and Period
+    func fetchTransactions(accountId: Int, startDate: Date, endDate: Date) async throws -> [Transaction] {
 
-        Transaction(
-            id: 2,
-            account: BankAccount(
-                id: 0,
-                userId: 0,
-                name: "Иван Иванович",
-                balance: 150000.00,
-                currency: "RUB",
-                createdAt: Date(),
-                updatedAt: Date()
-            ),
-            category: Category(
-                id: 4,
-                name: "Помощь рядом",
-                emoji: "💚",
-                direction: .outcome
-            ),
-            amount: 500.00,
-            transactionDate: Date(),
-            comment: "Люблю такси",
-            createdAt: Date(),
-            updatedAt: Date()
-        ),
-
-        Transaction(
-            id: 3,
-            account: BankAccount(
-                id: 0,
-                userId: 0,
-                name: "Иван Иванович",
-                balance: 150000.00,
-                currency: "RUB",
-                createdAt: Date(),
-                updatedAt: Date()
-            ),
-            category: Category(
-                id: 0,
-                name: "Маркет",
-                emoji: "🚚",
-                direction: .outcome
-            ),
-            amount: 236.00,
-            transactionDate: Date(),
-            comment: "Люблю такси",
-            createdAt: Date(),
-            updatedAt: Date()
-        ),
-    ]
-
+        let startString = dateService.toStringDay(from: startDate)
+        let endString = dateService.toStringDay(from: endDate)
+        let queryItems = [
+            URLQueryItem(name: "startDate", value: startString),
+            URLQueryItem(name: "endDate", value: endString)
+        ]
+        do {
+            let raw = try await networkClient.request(
+                endpoint: "transactions/account/\(accountId)/period",
+                method: .get,
+                queryItems: queryItems,
+                body: nil,
+                headers: nil
+            )
+            guard let array = raw as? [Any] else {
+                throw NSError(domain: "TransactionsService", code: 2, userInfo: [NSLocalizedDescriptionKey: "Unexpected raw data format"])
+            }
+            let transactions = try await withThrowingTaskGroup(of: Transaction?.self) { group in
+                for obj in array {
+                    group.addTask {
+                        try await Transaction.parse(jsonObject: obj)
+                    }
+                }
+                return try await group.reduce(into: [Transaction]()) { result, transaction in
+                    if let transaction = transaction {
+                        result.append(transaction)
+                    }
+                }
+            }
+            // 2. Сохраняем новые операции в персистенс
+            for transaction in transactions {
+                _ = await transactionsStorage.createTransaction(transaction)
+            }
+            
+            // Очищаем ошибку сети при успешном запросе
+            NetworkStatusService.shared.clearNetworkError()
+            
+            return transactions
+        } catch {
+            // 4. При ошибке — возвращаем данные из локального хранилища и бэкапа
+            NetworkStatusService.shared.markNetworkError(error)
+            
+            let localTransactions = await transactionsStorage.getAllTransactions()
+            let backupActions = await backupStorage.getAllActions()
+            let backupTransactions = backupActions.compactMap { $0.transaction }
+            let all = localTransactions
+            // Фильтруем по периоду
+            let filtered = all.filter {
+                $0.transactionDate >= startDate && $0.transactionDate <= endDate
+            }
+            return filtered
+        }
+    }
+    
+    // MARK: - Add Transaction
+    func add(_ transaction: Transaction) async throws -> Transaction {
+        do {
+            let body = transaction.jsonObjectPOST
+            _ = try await networkClient.request(
+                endpoint: "transactions",
+                method: .post,
+                queryItems: nil,
+                body: body,
+                headers: ["Content-Type": "application/json"]
+            )
+            
+            // При успехе повторяем действие в локальном хранилище
+            _ = await transactionsStorage.createTransaction(transaction)
+            
+            // Удаляем из бэкапа неактуальные операции
+            backupStorage.removeAction(for: transaction.id)
+            
+            // Обновляем баланс счета
+            await updateAccountBalance(for: transaction)
+            
+            return transaction
+        } catch {
+            // При провале добавляем операцию в бэкап
+            let backupAction = BackupTransactionAction(
+                id: transaction.id,
+                actionType: .create,
+                transaction: transaction.toDTO(),
+                timestamp: Date()
+            )
+            backupStorage.addAction(backupAction)
+            
+            // Также добавляем изменение счета в бэкап
+            await addAccountBalanceBackup(for: transaction)
+            
+            throw error
+        }
+    }
+    
+    // MARK: - Update Transaction
+    func update(_ transaction: Transaction) async throws -> Transaction {
+        do {
+            let body = transaction.jsonObjectPOST
+            _ = try await networkClient.request(
+                endpoint: "transactions/\(transaction.id)",
+                method: .put,
+                queryItems: nil,
+                body: body,
+                headers: ["Content-Type": "application/json"]
+            )
+            
+            // При успехе повторяем действие в локальном хранилище
+            _ = await transactionsStorage.updateTransaction(transaction)
+            
+            // Удаляем из бэкапа неактуальные операции
+            backupStorage.removeAction(for: transaction.id)
+            
+            // Обновляем баланс счета
+            await updateAccountBalance(for: transaction)
+            
+            return transaction
+        } catch {
+            // При провале добавляем операцию в бэкап
+            let backupAction = BackupTransactionAction(
+                id: transaction.id,
+                actionType: .update,
+                transaction: transaction.toDTO(),
+                timestamp: Date()
+            )
+            backupStorage.addAction(backupAction)
+            
+            // Также добавляем изменение счета в бэкап
+            await addAccountBalanceBackup(for: transaction)
+            
+            throw error
+        }
+    }
+    
+    // MARK: - Delete Transaction
+    func delete(id: Int) async throws -> Bool {
+        do {
+            _ = try await networkClient.request(
+                endpoint: "transactions/\(id)",
+                method: .delete,
+                queryItems: nil,
+                body: nil,
+                headers: nil
+            )
+            
+            // При успехе повторяем действие в локальном хранилище
+            let result = await transactionsStorage.deleteTransaction(id: id)
+            
+            // Удаляем из бэкапа неактуальные операции
+            backupStorage.removeAction(for: id)
+            
+            return result
+        } catch {
+            // При провале добавляем операцию в бэкап
+            let backupAction = BackupTransactionAction(
+                id: id,
+                actionType: .delete,
+                transaction: nil,
+                timestamp: Date()
+            )
+            backupStorage.addAction(backupAction)
+            
+            throw error
+        }
+    }
+    
+    // MARK: - Local Filtering (optional, for convenience)
     func getTransactions(_ start: Date, _ end: Date) async throws -> [Transaction] {
-        return transactions.filter {
+        let all = await transactionsStorage.getAllTransactions()
+        return all.filter {
             $0.transactionDate >= start && $0.transactionDate <= end
         }
     }
-
-    func getTransactions(start: Date, end: Date, direction: Direction) -> [Transaction] {
-        let filtered: [Transaction] = self.transactions.filter {
+    
+    
+    func getTransactions(start: Date, end: Date, direction: Direction, hardRefresh: Bool = false) async throws -> [Transaction] {
+        
+        var transactions: [Transaction] = await transactionsStorage.getAllTransactions()
+        
+        if transactions.isEmpty || hardRefresh {
+            transactions = try await fetchTransactions(accountId: Utility.accountId, startDate: start, endDate: end)
+        }
+        
+        for transaction in transactions {
+            _ = await transactionsStorage.createTransaction(transaction)
+        }
+        
+        let filtered: [Transaction] = transactions.filter {
             $0.category.direction == direction
         }
         return filtered.filter {
             $0.transactionDate >= start && $0.transactionDate <= end
         }
     }
-
-    func add(_ transaction: Transaction) async throws -> Transaction {
-        await MainActor.run {
-            transactions.append(transaction)
+    
+    // MARK: - Account Balance Management
+    
+    private func updateAccountBalance(for transaction: Transaction) async {
+        guard let accountBalanceService = accountBalanceService else {
+            print("AccountBalanceService not initialized")
+            return
         }
-        return transaction
+        
+        do {
+            try await accountBalanceService.updateBalanceForTransaction(transaction)
+        } catch {
+            print("Failed to update account balance: \(error)")
+        }
     }
-
-    func update<Value>(
-        id: Int,
-        keyPath: WritableKeyPath<Transaction, Value>,
-        value: Value
-    ) async throws -> Transaction {
-        guard let index = transactions.firstIndex(where: { $0.id == id }) else {
-            throw NSError(
-                domain: "TransactionsService",
-                code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "Transaction not found"]
+    
+    private func addAccountBalanceBackup(for transaction: Transaction) async {
+        // Получаем BankAccount по id
+        do {
+            guard let accountBalanceService = accountBalanceService else { return }
+            let bankAccount = try await accountBalanceService.bankAccountsService.getAccount(id: transaction.account.id)
+            let backupAction = BackupBankAccountAction(
+                id: bankAccount.id,
+                actionType: .update,
+                account: bankAccount.toDTO(),
+                timestamp: Date()
             )
-        }
-        var transaction = transactions[index]
-        transaction[keyPath: keyPath] = value
-        transaction.updatedAt = Date()
-        await MainActor.run {
-            transactions[index] = transaction
-        }
-        return transaction
-    }
-
-    func delete(id: Int) async -> Bool {
-        if let index = transactions.firstIndex(where: { $0.id == id }) {
-            await MainActor.run {
-                transactions.remove(at: index)
-            }
-            return true
-        } else {
-            return false
+            backupBankAccountStorage.addAction(backupAction)
+        } catch {
+            print("Не удалось добавить в бэкап изменение счета: \(error)")
         }
     }
 }

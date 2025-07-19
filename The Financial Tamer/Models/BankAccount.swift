@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct BankAccount: Hashable{
+struct BankAccount: Hashable, Encodable{
     let id: Int
     let userId: Int
     var name: String
@@ -18,7 +18,7 @@ struct BankAccount: Hashable{
 }
  
 extension BankAccount{
-    static func parse(jsonObject: Any) -> BankAccount?{
+    static func parse(jsonObject: Any) async throws -> BankAccount?{
         guard let dict = jsonObject as? [String: Any] else {
             return nil
         }
@@ -39,7 +39,7 @@ extension BankAccount{
               let updatedAtString = dict["updatedAt"] as? String,
               let updatedAt = dateService.toDate(from: updatedAtString)
         else {
-            print("Error parsing Transaction")
+            print("Error parsing Account")
             return nil
         }
 
@@ -52,5 +52,14 @@ extension BankAccount{
             createdAt: createdAt,
             updatedAt: updatedAt
         )
+    }
+
+
+    var jsonObject: [String: Any] {
+        return [
+            "name": self.name,
+            "balance": self.balance,
+            "currency": self.currency,
+        ]
     }
 }

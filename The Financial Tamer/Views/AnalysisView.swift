@@ -5,7 +5,7 @@ class AnalysisViewController: UIViewController {
     
     // MARK: - Properties
     private let direction: Direction
-    private let transactionService = TransactionsService()
+    private let transactionService: TransactionsService
     private let dateService = DateService()
     private let currencyService = CurrencyService()
     
@@ -25,11 +25,12 @@ class AnalysisViewController: UIViewController {
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
     
     // MARK: - Initialization
-    init(direction: Direction) {
+    init(direction: Direction, transactionService: TransactionsService) {
         self.direction = direction
         let monthAgo = dateService.calendar.date(byAdding: .month, value: -1, to: dateService.now)!
         self.startDate = dateService.startOfDay(date: monthAgo)
         self.endDate = dateService.endOfDay()
+        self.transactionService = transactionService
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -80,9 +81,11 @@ class AnalysisViewController: UIViewController {
     
     // MARK: - Data Management
     private func reloadData() {
-        transactions = transactionService.getTransactions(start: startDate, end: endDate, direction: direction)
-        transactions = sortTransactions(transactions, sortType)
-        tableView.reloadData()
+        Task{
+            transactions = try await transactionService.getTransactions(start: startDate, end: endDate, direction: direction)
+            transactions = sortTransactions(transactions, sortType)
+            tableView.reloadData()
+        }
     }
     
     private func sortTransactions(_ transactions: [Transaction], _ sortType: SortType) -> [Transaction] {
@@ -633,9 +636,10 @@ import SwiftUI
 
 struct AnalysisViewControllerWrapper: UIViewControllerRepresentable {
     let direction: Direction
+    @ObservedObject var transactionService: TransactionsService
 
     func makeUIViewController(context: Context) -> UIViewController {
-        AnalysisViewController(direction: direction)
+        AnalysisViewController(direction: direction, transactionService: transactionService)
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
@@ -645,7 +649,7 @@ struct AnalysisViewControllerWrapper: UIViewControllerRepresentable {
 
 #Preview {
     NavigationStack {
-        AnalysisViewControllerWrapper(direction: .outcome)
+        AnalysisViewControllerWrapper(direction: .outcome, transactionService: TransactionsService(networkClient: DefaultNetworkClient()))
             .navigationTitle("Анализ")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(Color(.systemGroupedBackground), for: .navigationBar)
