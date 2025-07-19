@@ -11,7 +11,7 @@ import Combine
 final class TransactionsService: ObservableObject {
     private let networkClient: NetworkClient
     private let dateService: DateService
-    @Published private(set) var transactions: [Transaction] = []
+    private var transactions: [Transaction] = []
     
     init(networkClient: NetworkClient) {
         self.networkClient = networkClient
@@ -19,14 +19,17 @@ final class TransactionsService: ObservableObject {
     }
     
     // MARK: - Fetch Transactions by Account and Period
-    func fetchTransactions(accountId: Int, startDate: Date = Date(), endDate: Date = Date()) async throws -> [Transaction] {
+    func fetchTransactions(accountId: Int, startDate: Date, endDate: Date) async throws -> [Transaction] {
         let startString = dateService.toStringDay(from: startDate)
         let endString = dateService.toStringDay(from: endDate)
-        
-        let endpoint = "transactions/account/\(accountId)/period?startDate=\(startString)&endDate=\(endString)"
+        let queryItems = [
+            URLQueryItem(name: "startDate", value: startString),
+            URLQueryItem(name: "endDate", value: endString)
+        ]
         let raw = try await networkClient.request(
-            endpoint: endpoint,
+            endpoint: "transactions/account/\(accountId)/period",
             method: .get,
+            queryItems: queryItems,
             body: nil,
             headers: nil
         )
@@ -45,8 +48,6 @@ final class TransactionsService: ObservableObject {
                 }
             }
         }
-        
-        print(transactions)
         return transactions
     }
     
@@ -56,6 +57,7 @@ final class TransactionsService: ObservableObject {
         let raw = try await networkClient.request(
             endpoint: "transactions",
             method: .post,
+            queryItems: nil,
             body: body,
             headers: ["Content-Type": "application/json"]
         )
@@ -76,6 +78,7 @@ final class TransactionsService: ObservableObject {
         let raw = try await networkClient.request(
             endpoint: "transactions/\(transaction.id)",
             method: .put,
+            queryItems: nil,
             body: body,
             headers: ["Content-Type": "application/json"]
         )
@@ -95,6 +98,7 @@ final class TransactionsService: ObservableObject {
         _ = try await networkClient.request(
             endpoint: "transactions/\(id)",
             method: .delete,
+            queryItems: nil,
             body: nil,
             headers: nil
         )
@@ -116,12 +120,12 @@ final class TransactionsService: ObservableObject {
         }
     }
     
-    func getTransactions(start: Date, end: Date, direction: Direction) -> [Transaction] {
+    func getTransactions(start: Date, end: Date, direction: Direction, hardRefresh: Bool = false) -> [Transaction] {
         
-        if transactions.isEmpty {
+        if transactions.isEmpty || hardRefresh {
             Task
             {
-                transactions = try await fetchTransactions(accountId: Utility.accountId)
+                transactions = try await fetchTransactions(accountId: Utility.accountId, startDate: start, endDate: end)
             }
         }
         
@@ -133,10 +137,10 @@ final class TransactionsService: ObservableObject {
         }
     }
     
-    func getTransactionsAsync(start: Date, end: Date, direction: Direction) async throws -> [Transaction] {
+    func getTransactionsAsync(start: Date, end: Date, direction: Direction, hardRefresh: Bool = false) async throws -> [Transaction] {
         
-        if transactions.isEmpty {
-            transactions = try await fetchTransactions(accountId: Utility.accountId)
+        if transactions.isEmpty || hardRefresh {
+            transactions = try await fetchTransactions(accountId: Utility.accountId, startDate: start, endDate: end)
         }
         
         let filtered: [Transaction] = self.transactions.filter {

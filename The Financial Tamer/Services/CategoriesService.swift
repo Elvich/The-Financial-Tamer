@@ -19,6 +19,7 @@ final class CategoriesService: ObservableObject {
         let raw = try await networkClient.request(
             endpoint: "categories",
             method: .get,
+            queryItems: nil,
             body: nil,
             headers: nil
         )

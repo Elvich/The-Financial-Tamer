@@ -9,7 +9,7 @@ import Foundation
 
 struct Transaction: Hashable, Identifiable {
     let id: Int
-    let account: BankAccount
+    let account: TransactionAccount
     var category: Category
     var amount: Decimal
     var transactionDate: Date
@@ -29,7 +29,8 @@ extension Transaction{
         
         guard let id = dict["id"] as? Int,
               
-            let account = try await BankAccount.parse(jsonObject: dict["account"] as Any),
+
+            let account = try await TransactionAccount.parse(jsonObject: dict["account"] as Any),
             let category = Category.parse(jsonObject: dict["category"] as Any),
               
             let amount = Decimal(string: (dict["amount"] as? String) ?? ""),

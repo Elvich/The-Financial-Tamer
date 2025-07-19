@@ -34,6 +34,7 @@ protocol NetworkClient {
     func request(
         endpoint: String,
         method: HTTPMethod,
+        queryItems: [URLQueryItem]?,
         body: ([String: Any])?,
         headers: [String: String]?
     ) async throws -> Any
@@ -98,10 +99,22 @@ final class DefaultNetworkClient: NetworkClient {
     func request(
         endpoint: String,
         method: HTTPMethod,
+        queryItems: [URLQueryItem]? = nil,
         body: ([String: Any])? = nil,
         headers: [String: String]? = nil
     ) async throws -> Any {
-        var urlRequest = URLRequest(url: baseURL.appendingPathComponent(endpoint))
+        let url: URL
+        if let queryItems = queryItems, !queryItems.isEmpty {
+            var components = URLComponents(url: baseURL.appendingPathComponent(endpoint), resolvingAgainstBaseURL: false)!
+            components.queryItems = queryItems
+            guard let composedURL = components.url else {
+                throw NetworkError.invalidResponse
+            }
+            url = composedURL
+        } else {
+            url = baseURL.appendingPathComponent(endpoint)
+        }
+        var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = method.rawValue
         urlRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")

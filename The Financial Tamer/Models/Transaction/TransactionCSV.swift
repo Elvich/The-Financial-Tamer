@@ -38,7 +38,7 @@ extension Transaction{
             throw ParseError.invalidId
         }
 
-        let account = try await BankAccount.parse(jsonObject: components[1])!
+        let account = try await TransactionAccount.parse(jsonObject: components[1])!
 
         let category = Category.parse(jsonObject: components[2])!
         

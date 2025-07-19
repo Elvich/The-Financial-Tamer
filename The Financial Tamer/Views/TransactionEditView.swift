@@ -343,7 +343,7 @@ struct TransactionEditView: View {
                     let account = try await bankAccountsService.getAccount(id: Utility.accountId)
                     let newTransaction = Transaction(
                         id: Int.random(in: 1000...9999),
-                        account: account,
+                        account: try await TransactionAccount.parse(account: account)!,
                         category: category,
                         amount: amountDecimal,
                         transactionDate: transactionDate,

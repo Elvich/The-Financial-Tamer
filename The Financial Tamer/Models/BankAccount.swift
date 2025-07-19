@@ -39,7 +39,7 @@ extension BankAccount{
               let updatedAtString = dict["updatedAt"] as? String,
               let updatedAt = dateService.toDate(from: updatedAtString)
         else {
-            print("Error parsing Transaction")
+            print("Error parsing Account")
             return nil
         }
 

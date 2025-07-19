@@ -155,7 +155,7 @@ struct HistoryView: View {
     }
 
     private var filteredTransactions: [Transaction] {
-        let filtered = transactionsService.transactions.filter {
+        let filtered = transactionsService.getTransactions(start: startDate, end: endDate, direction: direction, hardRefresh: true).filter {
             $0.category.direction == direction &&
             $0.transactionDate >= startDate &&
             $0.transactionDate <= endDate

@@ -26,7 +26,7 @@ extension Category{
               let emoji = emojiString.first,
               let direction = dict["isIncome"] as? Bool
         else {
-            print("Error parsing Transaction")
+            print("Error parsing Categoty")
             return nil
         }
 

@@ -23,6 +23,7 @@ final class BankAccountsService: ObservableObject {
         let raw = try await networkClient.request(
             endpoint: "accounts",
             method: .get,
+            queryItems: nil,
             body: nil,
             headers: nil
         )
@@ -99,6 +100,7 @@ final class BankAccountsService: ObservableObject {
             let raw = try await networkClient.request(
                 endpoint: "accounts/\(account.id)",
                 method: .put,
+                queryItems: nil,
                 body: body,
                 headers: ["Content-Type": "application/json"]
             )
