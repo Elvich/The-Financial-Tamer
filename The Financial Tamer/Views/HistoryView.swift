@@ -18,6 +18,8 @@ struct HistoryView: View {
     @State private var endDate = Date()
     @State private var showingEditTransaction = false
     @State private var selectedTransaction: Transaction?
+    
+    @State private var transactions: [Transaction] = []
 
     let dateService = DateService()
     let transactionsView: TransactionsView
@@ -53,7 +55,7 @@ struct HistoryView: View {
                 List {
                     //transactionsSettingsSection()
                     Section(header: Text("Операции")) {
-                        ForEach(filteredTransactions) { transaction in
+                        ForEach(transactions) { transaction in
                             Button(action: {
                                 selectedTransaction = transaction
                                 showingEditTransaction = true
@@ -67,6 +69,12 @@ struct HistoryView: View {
                             .buttonStyle(PlainButtonStyle())
                         }
                     }
+                }
+                .task{
+                    transactions = filteredTransactions
+                }
+                .refreshable{
+                    transactions = filteredTransactions
                 }
             }
             .background(Color(.systemGroupedBackground))
