@@ -207,7 +207,7 @@ extension HistoryView {
 
 #Preview {
     HistoryView(direction: .outcome,
-                transactionsService: TransactionsService(networkClient: DefaultNetworkClient()),
+                transactionsService: TransactionsService(networkClient: DefaultNetworkClient(), networkStatus: NetworkStatusService()),
                 categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
                 bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )

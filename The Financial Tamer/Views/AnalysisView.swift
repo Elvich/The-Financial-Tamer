@@ -649,7 +649,7 @@ struct AnalysisViewControllerWrapper: UIViewControllerRepresentable {
 
 #Preview {
     NavigationStack {
-        AnalysisViewControllerWrapper(direction: .outcome, transactionService: TransactionsService(networkClient: DefaultNetworkClient()))
+        AnalysisViewControllerWrapper(direction: .outcome, transactionService: TransactionsService(networkClient: DefaultNetworkClient(), networkStatus: NetworkStatusService()))
             .navigationTitle("Анализ")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(Color(.systemGroupedBackground), for: .navigationBar)

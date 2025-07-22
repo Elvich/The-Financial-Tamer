@@ -12,6 +12,7 @@ import SwiftData
 final class TransactionsService: ObservableObject {
     private let networkClient: NetworkClient
     private let dateService: DateService
+    private let networkStatus: NetworkStatusService
     
     private let transactionsStorage = TransactionsSwiftDataStorage()
     private var _backupStorage: BackupStorage?
@@ -41,9 +42,10 @@ final class TransactionsService: ObservableObject {
         return storage
     }
 
-    init(networkClient: NetworkClient) {
+    init(networkClient: NetworkClient, networkStatus: NetworkStatusService) {
         self.networkClient = networkClient
         self.dateService = DateService()
+        self.networkStatus = networkStatus
         // backupStorage будет инициализирован после установки modelContext
     }
     
@@ -91,12 +93,12 @@ final class TransactionsService: ObservableObject {
             }
             
             // Очищаем ошибку сети при успешном запросе
-            NetworkStatusService.shared.clearNetworkError()
+            networkStatus.clearNetworkError()
             
             return transactions
         } catch {
             // 4. При ошибке — возвращаем данные из локального хранилища и бэкапа
-            NetworkStatusService.shared.markNetworkError(error)
+            networkStatus.markNetworkError(error)
             
             let localTransactions = await transactionsStorage.getAllTransactions()
             let backupActions = await backupStorage.getAllActions()

@@ -445,7 +445,7 @@ extension DateService {
     TransactionEditView(
         mode: .create,
         direction: .outcome, transaction: nil,
-        transactionsService: TransactionsService(networkClient: DefaultNetworkClient()),
+        transactionsService: TransactionsService(networkClient: DefaultNetworkClient(), networkStatus: NetworkStatusService()),
         categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
         bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )

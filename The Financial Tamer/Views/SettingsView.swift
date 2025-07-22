@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @StateObject private var storageManager = StorageManager.shared
-    @StateObject private var networkStatusService = NetworkStatusService.shared
+    @StateObject var storageManager: StorageManager
+    @StateObject var networkStatusService: NetworkStatusService
     
     var body: some View {
         NavigationStack {
@@ -64,5 +64,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView()
-} 
+    SettingsView(storageManager: StorageManager(), networkStatusService: NetworkStatusService())
+}

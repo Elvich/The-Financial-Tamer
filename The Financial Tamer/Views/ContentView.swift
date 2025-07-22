@@ -14,10 +14,10 @@ struct ContentView: View {
     @StateObject private var storageManager = StorageManager()
     @StateObject private var networkStatusService = NetworkStatusService()
     
-    @StateObject private var transactionsService = TransactionsService(networkClient: DefaultNetworkClient())
+    @StateObject private var transactionsService = TransactionsService(networkClient: DefaultNetworkClient(), networkStatus: NetworkStatusService())
     @StateObject private var categoriesService = CategoriesService(networkClient: DefaultNetworkClient())
     @StateObject private var bankAccountsService = BankAccountsService(networkClient: DefaultNetworkClient())
-    
+
     var body: some View {
         ZStack {
             TabView {
@@ -44,13 +44,13 @@ struct ContentView: View {
                     CategoryView(categoriesService: categoriesService)
                 }
                             Tab("Настройки", image: "Settings") {
-                SettingsView()
+                SettingsView(storageManager: storageManager, networkStatusService: networkStatusService)
             }
             }
  
             // Оффлайн индикатор
             VStack {
-                OfflineIndicatorView()
+                OfflineIndicatorView(networkStatusService: networkStatusService)
                 Spacer()
             }
         }

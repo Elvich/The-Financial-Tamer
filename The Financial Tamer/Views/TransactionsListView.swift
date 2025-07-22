@@ -160,7 +160,7 @@ struct TransactionsListView: View {
 #Preview {
     TransactionsListView(
         direction: .income,
-        transactionsService: TransactionsService(networkClient: DefaultNetworkClient()),
+        transactionsService: TransactionsService(networkClient: DefaultNetworkClient(), networkStatus: NetworkStatusService()),
         categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
         bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
     )
