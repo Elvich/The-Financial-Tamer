@@ -24,7 +24,6 @@ enum StorageType: String, CaseIterable {
 }
 
 final class StorageManager: ObservableObject {
-    static let shared = StorageManager()
     
     @Published var currentStorageType: StorageType {
         didSet {
@@ -33,7 +32,7 @@ final class StorageManager: ObservableObject {
         }
     }
     
-    private init() {
+    init() {
         let savedType = UserDefaults.standard.string(forKey: "StorageType") ?? StorageType.swiftData.rawValue
         self.currentStorageType = StorageType(rawValue: savedType) ?? .swiftData
     }

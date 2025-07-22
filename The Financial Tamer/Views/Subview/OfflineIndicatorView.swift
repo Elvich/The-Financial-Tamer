@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct OfflineIndicatorView: View {
-    @ObservedObject var networkStatusService = NetworkStatusService.shared
+    @ObservedObject var networkStatusService = NetworkStatusService()
     
     var body: some View {
         if !networkStatusService.isOnline {

@@ -10,7 +10,6 @@ import Network
 import Combine
 
 final class NetworkStatusService: ObservableObject {
-    static let shared = NetworkStatusService()
     
     @Published var isOnline: Bool = true
     @Published var lastNetworkError: Error?
@@ -18,7 +17,7 @@ final class NetworkStatusService: ObservableObject {
     private let networkMonitor = NWPathMonitor()
     private let queue = DispatchQueue(label: "NetworkMonitor")
     
-    private init() {
+    init() {
         setupNetworkMonitoring()
     }
     

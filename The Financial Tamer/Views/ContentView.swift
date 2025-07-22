@@ -11,8 +11,8 @@ import SwiftData
 struct ContentView: View {
     
     @Environment(\.modelContext) private var modelContext: ModelContext
-    @StateObject private var storageManager = StorageManager.shared
-    @StateObject private var networkStatusService = NetworkStatusService.shared
+    @StateObject private var storageManager = StorageManager()
+    @StateObject private var networkStatusService = NetworkStatusService()
     
     @StateObject private var transactionsService = TransactionsService(networkClient: DefaultNetworkClient())
     @StateObject private var categoriesService = CategoriesService(networkClient: DefaultNetworkClient())
@@ -47,7 +47,7 @@ struct ContentView: View {
                 SettingsView()
             }
             }
-            
+ 
             // Оффлайн индикатор
             VStack {
                 OfflineIndicatorView()
