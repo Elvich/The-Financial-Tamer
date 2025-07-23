@@ -189,9 +189,6 @@ struct HistoryView: View {
         case .amount:
             return filtered.sorted { $0.amount > $1.amount }
         }
-
-        return filtered
-        
     }
 }
 

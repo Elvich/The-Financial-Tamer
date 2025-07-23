@@ -87,7 +87,7 @@ final class TransactionsFileCache {
     private func loadTransactionsFromFile() async -> [Transaction] {
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .utility).async {
-                do {
+                do { 
                     let data = try Data(contentsOf: self.fileURL)
                     guard let jsonArray = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
                         print("Формат файла некорректен")

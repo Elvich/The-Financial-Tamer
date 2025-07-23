@@ -18,7 +18,7 @@ final class BankAccountsService: ObservableObject {
     
     var modelContext: ModelContext? {
         didSet {
-            if let context = modelContext {
+            if modelContext != nil {
                 _backupStorage = BackupBankAccountStorageSwiftData()
             }
         }

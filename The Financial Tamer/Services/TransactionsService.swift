@@ -21,7 +21,7 @@ final class TransactionsService: ObservableObject {
     
     var modelContext: ModelContext? {
         didSet {
-            if let context = modelContext {
+            if modelContext != nil {
                 _backupStorage = BackupStorageSwiftData()
                 _backupBankAccountStorage = BackupBankAccountStorageSwiftData()
             }
@@ -102,7 +102,7 @@ final class TransactionsService: ObservableObject {
             
             let localTransactions = await transactionsStorage.getAllTransactions()
             let backupActions = await backupStorage.getAllActions()
-            let backupTransactions = backupActions.compactMap { $0.transaction }
+            _ = backupActions.compactMap { $0.transaction }
             let all = localTransactions
             // Фильтруем по периоду
             let filtered = all.filter {

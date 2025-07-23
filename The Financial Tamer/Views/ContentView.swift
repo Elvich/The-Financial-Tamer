@@ -56,7 +56,7 @@ struct ContentView: View {
     private func checkStorageSettings() {
         // Проверяем, изменились ли настройки хранения
         let savedType = UserDefaults.standard.string(forKey: "StorageType") ?? StorageType.swiftData.rawValue
-        let newStorageType = StorageType(rawValue: savedType) ?? .swiftData
+        _ = StorageType(rawValue: savedType) ?? .swiftData
     }
 }
 

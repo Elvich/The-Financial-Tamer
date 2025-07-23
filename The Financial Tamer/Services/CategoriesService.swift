@@ -35,7 +35,7 @@ final class CategoriesService: ObservableObject {
         let categories = try await withThrowingTaskGroup(of: Category?.self) { group in
             for obj in array {
                 group.addTask {
-                    try await Category.parse(jsonObject: obj)
+                    Category.parse(jsonObject: obj)
                 }
             }
             return try await group.reduce(into: [Category]()) { result, category in
