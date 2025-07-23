@@ -8,10 +8,18 @@
 import SwiftUI
 
 struct CategoryView: View {
+    
+    typealias Dependency = CategoriesServiceProtocol
+    
     let categoriesService: CategoriesService
+    
     @State private var categories: [Category] = []
     @State private var searchText: String = ""
     @State private var isLoading: Bool = false
+    
+    init(container: Dependency) {
+        self.categoriesService = container.categoriesService
+    }
     
     func fuzzyMatch(_ pattern: String, in text: String) -> Bool {
         if pattern.isEmpty { return true }
@@ -68,5 +76,5 @@ struct CategoryView: View {
 }
 
 #Preview {
-    CategoryView(categoriesService: CategoriesService(networkClient: DefaultNetworkClient()))
+    CategoryView(container: AppDependency())
 }

@@ -11,12 +11,8 @@ import SwiftData
 struct ContentView: View {
     
     @Environment(\.modelContext) private var modelContext: ModelContext
-    @StateObject private var storageManager = StorageManager()
-    @StateObject private var networkStatusService = NetworkStatusService()
     
-    @StateObject private var transactionsService = TransactionsService(networkClient: DefaultNetworkClient(), networkStatus: NetworkStatusService())
-    @StateObject private var categoriesService = CategoriesService(networkClient: DefaultNetworkClient())
-    @StateObject private var bankAccountsService = BankAccountsService(networkClient: DefaultNetworkClient())
+    var appDependency = AppDependency()
 
     var body: some View {
         ZStack {
@@ -24,38 +20,32 @@ struct ContentView: View {
                 Tab("Расходы", image: "Outcome") {
                     TransactionsListView(
                         direction: .outcome,
-                        transactionsService: transactionsService,
-                        categoriesService: categoriesService,
-                        bankAccountsService: bankAccountsService
-                    )
+                        container: appDependency)
                 }
                 Tab("Доходы", image: "Income") {
                     TransactionsListView(
                         direction: .income,
-                        transactionsService: transactionsService,
-                        categoriesService: categoriesService,
-                        bankAccountsService: bankAccountsService
-                    )
+                        container: appDependency)
                 }
                 Tab("Счет", image: "Account") {
-                    AccountView(bankAccountsService: bankAccountsService)
+                    AccountView(container: appDependency)
                 }
                 Tab("Статьи", image: "Articles") {
-                    CategoryView(categoriesService: categoriesService)
+                    CategoryView(container: appDependency)
                 }
                             Tab("Настройки", image: "Settings") {
-                SettingsView(storageManager: storageManager, networkStatusService: networkStatusService)
+                SettingsView(container: appDependency)
             }
             }
  
             // Оффлайн индикатор
             VStack {
-                OfflineIndicatorView(networkStatusService: networkStatusService)
+                OfflineIndicatorView(container: appDependency )
                 Spacer()
             }
         }
         .onAppear {
-            setupServices()
+            appDependency.SetupServices(modelContext: modelContext)
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             // Проверяем настройки при возвращении в приложение
@@ -63,24 +53,10 @@ struct ContentView: View {
         }
     }
     
-    private func setupServices() {
-        // Передаем modelContext в сервисы
-        transactionsService.modelContext = modelContext
-        bankAccountsService.modelContext = modelContext
-        
-        // Настраиваем AccountBalanceService
-        transactionsService.setBankAccountsService(bankAccountsService)
-    }
-    
     private func checkStorageSettings() {
         // Проверяем, изменились ли настройки хранения
         let savedType = UserDefaults.standard.string(forKey: "StorageType") ?? StorageType.swiftData.rawValue
         let newStorageType = StorageType(rawValue: savedType) ?? .swiftData
-        
-        if storageManager.currentStorageType != newStorageType {
-            storageManager.currentStorageType = newStorageType
-            // Здесь можно добавить логику миграции данных
-        }
     }
 }
 

@@ -8,8 +8,17 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @StateObject var storageManager: StorageManager
-    @StateObject var networkStatusService: NetworkStatusService
+    
+    typealias Dependency = StorageManagerProtocol & NetworkStatusServiceProtocol
+    
+    @ObservedObject var storageManager: StorageManager
+    @ObservedObject var networkStatusService: NetworkStatusService
+    
+    init(container: Dependency) {
+        self.storageManager = container.storageManage
+        self.networkStatusService = container.networkStatus
+    }
+        
     
     var body: some View {
         NavigationStack {
@@ -64,5 +73,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(storageManager: StorageManager(), networkStatusService: NetworkStatusService())
+    SettingsView(container: AppDependency())
 }

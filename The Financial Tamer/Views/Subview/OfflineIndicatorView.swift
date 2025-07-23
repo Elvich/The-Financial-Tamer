@@ -8,7 +8,13 @@
 import SwiftUI
 
 struct OfflineIndicatorView: View {
+    typealias Dependency = NetworkStatusServiceProtocol
+    
     @ObservedObject var networkStatusService: NetworkStatusService
+    
+    init(container: Dependency) {
+        self.networkStatusService = container.networkStatus
+    }
     
     var body: some View {
         if !networkStatusService.isOnline {
@@ -36,7 +42,7 @@ struct OfflineIndicatorView: View {
 
 #Preview {
     VStack {
-        OfflineIndicatorView(networkStatusService: NetworkStatusService())
+        OfflineIndicatorView(container: AppDependency())
         Spacer()
     }
     .background(Color(.systemGroupedBackground))

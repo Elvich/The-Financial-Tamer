@@ -8,11 +8,16 @@
 import SwiftUI
 
 struct TransactionsListView: View {
+    
+    typealias Dependency = TransactionsServiceProtocol & CategoriesServiceProtocol & BankAccountsServiceProtocol & CurrencyServiceProtocol
+    
     let direction: Direction
     @ObservedObject var transactionsService: TransactionsService
     let categoriesService: CategoriesService
     let bankAccountsService: BankAccountsService
-    private let currencyService = CurrencyService()
+    let currencyService: CurrencyService
+    
+    
     @State private var showingCreateTransaction = false
     @State private var selectedTransaction: Transaction? = nil
     
@@ -20,6 +25,14 @@ struct TransactionsListView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var totalAmount: Decimal = 0
+    
+    init(direction: Direction ,container: Dependency){
+        self.direction = direction
+        transactionsService = container.transactionsService
+        categoriesService = container.categoriesService
+        bankAccountsService = container.bankAccountsService
+        currencyService = container.currencyService
+    }
     
     private var title: String {
         (direction == .outcome ? "Расходы" : "Доходы") + " сегодня"
@@ -155,8 +168,5 @@ struct TransactionsListView: View {
 #Preview {
     TransactionsListView(
         direction: .income,
-        transactionsService: TransactionsService(networkClient: DefaultNetworkClient(), networkStatus: NetworkStatusService()),
-        categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
-        bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
-    )
+        container: AppDependency())
 }

@@ -8,10 +8,13 @@
 import SwiftUI
 import UIKit
 
-// MARK: - AccountView
 struct AccountView: View {
+    // MARK: - Dependencies
+    typealias Dependency = BankAccountsServiceProtocol & CurrencyServiceProtocol
+    
     // MARK: - Properties
     @ObservedObject var bankAccountsService: BankAccountsService
+    var currencyService: CurrencyService
     @State private var account: BankAccount?
     
     // MARK: - UI State
@@ -24,8 +27,11 @@ struct AccountView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     
-    // MARK: - Services
-    private let currencyService = CurrencyService()
+    init(container: Dependency) {
+        self.bankAccountsService = container.bankAccountsService
+        self.currencyService = container.currencyService
+    }
+    
     
     // MARK: - Constants
     private enum Constants {
@@ -538,5 +544,5 @@ private class ShakeDetectorView: UIView {
 
 // MARK: - Preview
 #Preview {
-    AccountView(bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient()))
+    AccountView(container: AppDependency())
 }

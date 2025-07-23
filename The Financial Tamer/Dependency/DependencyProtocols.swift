@@ -23,4 +23,18 @@ protocol StorageManagerProtocol {
     var storageManage: StorageManager { get }
 }
 
+protocol TransactionsServiceProtocol {
+    var transactionsService: TransactionsService { get }
+}
 
+protocol CurrencyServiceProtocol {
+    var currencyService: CurrencyService { get }
+}
+
+protocol CategoriesServiceProtocol {
+    var categoriesService: CategoriesService { get }
+}
+
+protocol BankAccountsServiceProtocol {
+    var bankAccountsService: BankAccountsService { get }
+}
