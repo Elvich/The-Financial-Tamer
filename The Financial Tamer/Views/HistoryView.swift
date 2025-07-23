@@ -24,15 +24,12 @@ struct HistoryView: View {
     @State private var transactions: [Transaction] = []
 
     let dateService = DateService()
-    let transactionsView: TransactionsView
 
     init(direction: Direction, transactionsService: TransactionsService, categoriesService: CategoriesService, bankAccountsService: BankAccountsService) {
         self.direction = direction
         self.transactionsService = transactionsService
         self.categoriesService = categoriesService
         self.bankAccountsService = bankAccountsService
-        
-        transactionsView = TransactionsView(transactionService: transactionsService, direction: direction)
         
 
         let monthAgo = dateService.calendar.date(
