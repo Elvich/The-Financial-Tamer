@@ -29,11 +29,6 @@ struct TransactionsListView: View {
         NavigationStack {
             ZStack{
                 VStack{
-                    //TransactionsView(transactionService: transactionsService, direction: direction).totalRowView()
-                      //  .padding(16)
-                        //.background(Color(.systemBackground))
-                        //.cornerRadius(12)
-                        //.padding(.horizontal, 16)
                     
                     HStack {
                         Text("Всего")

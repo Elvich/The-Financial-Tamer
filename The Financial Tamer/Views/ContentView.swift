@@ -66,7 +66,6 @@ struct ContentView: View {
     private func setupServices() {
         // Передаем modelContext в сервисы
         transactionsService.modelContext = modelContext
-        //categoriesService.modelContext = modelContext
         bankAccountsService.modelContext = modelContext
         
         // Настраиваем AccountBalanceService
