@@ -67,6 +67,7 @@ struct SettingsView: View {
                     }
                 }
             }
+            .padding(.bottom)
             .navigationTitle("Settings")
         }
     }
