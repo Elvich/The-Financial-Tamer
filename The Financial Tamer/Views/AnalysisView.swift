@@ -640,11 +640,13 @@ class OverlayDatePickerView: UIView {
 import SwiftUI
 
 struct AnalysisViewControllerWrapper: UIViewControllerRepresentable {
+    
+    @EnvironmentObject var appDependency: AppDependency
+    
     let direction: Direction
-    @ObservedObject var transactionService: TransactionsService
 
     func makeUIViewController(context: Context) -> UIViewController {
-        AnalysisViewController(direction: direction, transactionService: transactionService)
+        AnalysisViewController(direction: direction, transactionService: appDependency.transactionsService)
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
@@ -654,12 +656,13 @@ struct AnalysisViewControllerWrapper: UIViewControllerRepresentable {
 
 #Preview {
     NavigationStack {
-        AnalysisViewControllerWrapper(direction: .outcome, transactionService: TransactionsService(networkClient: DefaultNetworkClient(), networkStatus: NetworkStatusService()))
+        AnalysisViewControllerWrapper(direction: .outcome)
             .navigationTitle("Анализ")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(Color(.systemGroupedBackground), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
     }
+    .environmentObject(AppDependency())
 }
 
 #endif

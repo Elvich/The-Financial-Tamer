@@ -84,7 +84,7 @@ struct HistoryView: View {
         .navigationTitle("Моя история")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                NavigationLink(destination: AnalysisViewControllerWrapper(direction: direction, transactionService: appDependency.transactionsService)
+                NavigationLink(destination: AnalysisViewControllerWrapper(direction: direction)
                     .navigationTitle("Анализ")
                     .navigationBarTitleDisplayMode(.large)
                     .toolbarBackground(Color(.systemGroupedBackground), for: .navigationBar)
