@@ -11,33 +11,28 @@ import SwiftData
 struct ContentView: View {
     
     @Environment(\.modelContext) private var modelContext: ModelContext
+    @EnvironmentObject var appDependency: AppDependency
     
-    var appDependency = AppDependency()
-
     var body: some View {
         ZStack {
             TabView {
                 Tab("Расходы", image: "Outcome") {
-                    TransactionsListView(
-                        direction: .outcome,
-                        container: appDependency)
+                    TransactionsListView(direction: .outcome)
                 }
                 Tab("Доходы", image: "Income") {
-                    TransactionsListView(
-                        direction: .income,
-                        container: appDependency)
+                    TransactionsListView(direction: .income)
                 }
                 Tab("Счет", image: "Account") {
-                    AccountView(container: appDependency)
+                    AccountView()
                 }
                 Tab("Статьи", image: "Articles") {
-                    CategoryView(container: appDependency)
+                    CategoryView()
                 }
-                            Tab("Настройки", image: "Settings") {
-                SettingsView(container: appDependency)
+                Tab("Настройки", image: "Settings") {
+                    SettingsView()
+                }
             }
-            }
- 
+            
             // Оффлайн индикатор
             VStack {
                 OfflineIndicatorView(container: appDependency )
@@ -51,6 +46,15 @@ struct ContentView: View {
             // Проверяем настройки при возвращении в приложение
             checkStorageSettings()
         }
+        .preferredColorScheme(colorScheme)
+    }
+    
+    private var colorScheme: ColorScheme? {
+        switch appDependency.appSettings.appTheme {
+        case .light: return .light
+        case .dark: return .dark
+        case .system: return nil
+        }
     }
     
     private func checkStorageSettings() {
@@ -62,4 +66,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environmentObject(AppDependency())
 }

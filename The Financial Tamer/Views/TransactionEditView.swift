@@ -8,16 +8,15 @@
 import SwiftUI
 
 struct TransactionEditView: View {
+    
+    @EnvironmentObject var appDependency: AppDependency
+    
     @Environment(\.dismiss) private var dismiss
     
     let mode: EditMode
     let direction: Direction
     let transaction: Transaction?
-    @ObservedObject var transactionsService: TransactionsService
-    let categoriesService: CategoriesService
-    let bankAccountsService: BankAccountsService
-    private let dateService = DateService()
-    private let currencyService = CurrencyService()
+    
     
     @State private var selectedCategory: Category?
     @State private var amount: String = ""
@@ -37,7 +36,7 @@ struct TransactionEditView: View {
     }
     private var saveButtonTitle: String { isCreateMode ? "Создать" : "Сохранить" }
     private var canSave: Bool { !amount.isEmpty && selectedCategory != nil }
-    private var currencySymbol: String { currencyService.getSymbol(for: "RUB") }
+    private var currencySymbol: String { appDependency.currencyService.getSymbol(for: "RUB") }
     
     // Получаем разделитель в зависимости от локали пользователя
     private var decimalSeparator: String {
@@ -316,7 +315,7 @@ struct TransactionEditView: View {
         }
     }
     private func loadCategories() async {
-        availableCategories = try! await categoriesService.categories(for: direction)
+        availableCategories = try! await appDependency.categoriesService.categories(for: direction)
     }
     private func saveTransaction() {
         // Проверяем валидность всех полей
@@ -340,7 +339,7 @@ struct TransactionEditView: View {
         Task {
             do {
                 if isCreateMode {
-                    let account = try await bankAccountsService.getAccount(id: Utility.accountId)
+                    let account = try await appDependency.bankAccountsService.getAccount(id: Utility.accountId)
                     let newTransaction = Transaction(
                         id: Int.random(in: 1000...9999),
                         account: try await TransactionAccount.parse(account: account)!,
@@ -351,10 +350,10 @@ struct TransactionEditView: View {
                         createdAt: Date(),
                         updatedAt: Date()
                     )
-                    _ = try await transactionsService.add(newTransaction)
+                    _ = try await appDependency.transactionsService.add(newTransaction)
                 } else {
                     guard let transaction = transaction else { return }
-                    _ = try await transactionsService.update(transaction)
+                    _ = try await appDependency.transactionsService.update(transaction)
                 }
                 await MainActor.run {
                     isLoading = false
@@ -372,7 +371,7 @@ struct TransactionEditView: View {
         guard let transaction = transaction else { return }
         isLoading = true
         Task {
-            let success = try await transactionsService.delete(id: transaction.id)
+            let success = try await appDependency.transactionsService.delete(id: transaction.id)
             await MainActor.run {
                 isLoading = false
                 if success {
@@ -444,9 +443,7 @@ extension DateService {
 #Preview {
     TransactionEditView(
         mode: .create,
-        direction: .outcome, transaction: nil,
-        transactionsService: TransactionsService(networkClient: DefaultNetworkClient(), networkStatus: NetworkStatusService()),
-        categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
-        bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
+        direction: .outcome, transaction: nil
     )
+    .environmentObject(AppDependency())
 }

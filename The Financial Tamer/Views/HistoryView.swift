@@ -8,11 +8,10 @@
 import SwiftUI
 
 struct HistoryView: View {
+    
+    @EnvironmentObject var appDependency: AppDependency
+    
     let direction: Direction
-    @ObservedObject var transactionsService: TransactionsService
-    @ObservedObject var categoriesService: CategoriesService
-    @ObservedObject var bankAccountsService: BankAccountsService
-    private let currencyService = CurrencyService()
 
     @State private var sortType: SortType = .date
     @State private var startDate = Date()
@@ -23,13 +22,10 @@ struct HistoryView: View {
     
     @State private var transactions: [Transaction] = []
 
-    let dateService = DateService()
-
-    init(direction: Direction, transactionsService: TransactionsService, categoriesService: CategoriesService, bankAccountsService: BankAccountsService) {
+    private let dateService = DateService()
+    
+    init(direction: Direction) {
         self.direction = direction
-        self.transactionsService = transactionsService
-        self.categoriesService = categoriesService
-        self.bankAccountsService = bankAccountsService
         
 
         let monthAgo = dateService.calendar.date(
@@ -88,7 +84,7 @@ struct HistoryView: View {
         .navigationTitle("Моя история")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                NavigationLink(destination: AnalysisViewControllerWrapper(direction: direction, transactionService: transactionsService)
+                NavigationLink(destination: AnalysisViewControllerWrapper(direction: direction, transactionService: appDependency.transactionsService)
                     .navigationTitle("Анализ")
                     .navigationBarTitleDisplayMode(.large)
                     .toolbarBackground(Color(.systemGroupedBackground), for: .navigationBar)
@@ -101,7 +97,7 @@ struct HistoryView: View {
         }
         .sheet(isPresented: $showingEditTransaction) {
             if let transaction = selectedTransaction {
-                TransactionEditView(mode: .edit, direction: direction, transaction: transaction, transactionsService: transactionsService, categoriesService: categoriesService, bankAccountsService: bankAccountsService)
+                TransactionEditView(mode: .edit, direction: direction, transaction: transaction)
             }
         }
     }
@@ -160,15 +156,11 @@ struct HistoryView: View {
                 .pickerStyle(.palette)
             }
             
-            
-            //transactionsView.totalRowView(
-            //    text: "Сумма"
-            //)
             HStack {
                 Text("Всего")
                 Spacer()
                 if let first = transactions.first {
-                    Text("\( totalAmount ) \(currencyService.getSymbol(for: first.account.currency))")
+                    Text("\( totalAmount ) \(appDependency.currencyService.getSymbol(for: first.account.currency))")
                 } else {
                     Text("\(totalAmount)")
                 }
@@ -178,7 +170,7 @@ struct HistoryView: View {
 
     private func filteredTransactions() async -> [Transaction] {
         
-        let filtered = try! await transactionsService.getTransactions(start: startDate, end: endDate, direction: direction, hardRefresh: true).filter {
+        let filtered = try! await appDependency.transactionsService.getTransactions(start: startDate, end: endDate, direction: direction, hardRefresh: true).filter {
                 $0.category.direction == direction &&
                 $0.transactionDate >= startDate &&
                 $0.transactionDate <= endDate
@@ -200,9 +192,6 @@ extension HistoryView {
 }
 
 #Preview {
-    HistoryView(direction: .outcome,
-                transactionsService: TransactionsService(networkClient: DefaultNetworkClient(), networkStatus: NetworkStatusService()),
-                categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
-                bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
-    )
+    HistoryView(direction: .outcome)
+        .environmentObject(AppDependency())
 }

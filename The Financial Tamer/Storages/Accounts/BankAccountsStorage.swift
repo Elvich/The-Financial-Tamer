@@ -8,6 +8,8 @@
 import Foundation
 
 protocol BankAccountsStorage {
+    /// Получить все счета
+    ///  - Returns: массив счетов
     func getAllAccounts() async -> [BankAccount]
         
     /// Изменить счет по id

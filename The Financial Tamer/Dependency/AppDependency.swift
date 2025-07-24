@@ -7,9 +7,12 @@
 
 import Foundation
 import SwiftData
+import Combine
 
-struct AppDependency: NetworkClientProtocol, NetworkStatusServiceProtocol, DateServiceProtocol, StorageManagerProtocol, TransactionsServiceProtocol, CurrencyServiceProtocol, CategoriesServiceProtocol, BankAccountsServiceProtocol
+class AppDependency: ObservableObject, NetworkClientProtocol, NetworkStatusServiceProtocol, DateServiceProtocol, StorageManagerProtocol, TransactionsServiceProtocol, CurrencyServiceProtocol, CategoriesServiceProtocol, BankAccountsServiceProtocol, AppSettingsProtocol
 {
+    @Published var appSettings: AppSettings
+    
     var categoriesService: CategoriesService
     
     var bankAccountsService: BankAccountsService
@@ -18,7 +21,7 @@ struct AppDependency: NetworkClientProtocol, NetworkStatusServiceProtocol, DateS
     
     var transactionsService: TransactionsService
     
-    var storageManage: StorageManager
+    var storageManager: StorageManager
     
     var dateService: DateService
     
@@ -27,15 +30,28 @@ struct AppDependency: NetworkClientProtocol, NetworkStatusServiceProtocol, DateS
     var networkClient: NetworkClient
     
     init(){
-        networkClient = DefaultNetworkClient()
-        networkStatus = NetworkStatusService()
-        dateService = DateService()
-        storageManage = StorageManager()
+        let networkClient = DefaultNetworkClient()
+        let networkStatus = NetworkStatusService()
+        let dateService = DateService()
+        let storageManager = StorageManager()
+        let appSettings = AppSettings()
         
-        transactionsService = TransactionsService(networkClient: networkClient, networkStatus: networkStatus)
-        categoriesService = CategoriesService(networkClient: networkClient)
-        currencyService = CurrencyService()
-        bankAccountsService = BankAccountsService(networkClient: networkClient)
+        // Создаем сервисы, используя локальные переменные (не self!)
+        let transactionsService = TransactionsService(networkClient: networkClient, networkStatus: networkStatus)
+        let categoriesService = CategoriesService(networkClient: networkClient)
+        let currencyService = CurrencyService()
+        let bankAccountsService = BankAccountsService(networkClient: networkClient)
+        
+        // Теперь инициализируем все stored properties
+        self.networkClient = networkClient
+        self.networkStatus = networkStatus
+        self.dateService = dateService
+        self.storageManager = storageManager
+        self.appSettings = appSettings
+        self.transactionsService = transactionsService
+        self.categoriesService = categoriesService
+        self.currencyService = currencyService
+        self.bankAccountsService = bankAccountsService
     }
 }
 

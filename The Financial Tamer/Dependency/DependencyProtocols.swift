@@ -20,7 +20,7 @@ protocol DateServiceProtocol{
 }
 
 protocol StorageManagerProtocol {
-    var storageManage: StorageManager { get }
+    var storageManager: StorageManager { get }
 }
 
 protocol TransactionsServiceProtocol {
@@ -37,4 +37,8 @@ protocol CategoriesServiceProtocol {
 
 protocol BankAccountsServiceProtocol {
     var bankAccountsService: BankAccountsService { get }
+}
+
+protocol AppSettingsProtocol{
+    var appSettings: AppSettings { get }
 }
