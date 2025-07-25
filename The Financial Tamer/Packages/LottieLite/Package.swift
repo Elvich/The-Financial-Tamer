@@ -4,31 +4,29 @@
 import PackageDescription
 
 let package = Package(
-    name: "Utilities",
-    platforms: [ 
+    name: "LottieLite",
+    platforms: [
         .iOS(.v17)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "Utilities",
-            targets: ["Utilities"]),
-        .library(
-            name: "PieChart",
-            type: .static,
-            targets: ["PieChart"]
-        ),
+            name: "LottieLite",
+            targets: ["LottieLite"])
+    ],
+    dependencies: [
+        .package(url: "https://github.com/airbnb/lottie-ios.git", from: "4.0.0")  // Убрал лишние пробелы
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "Utilities"),
-        .target(
-            name: "PieChart"),
-        .testTarget(
-            name: "UtilitiesTests",
-            dependencies: ["Utilities"]
+            name: "LottieLite",
+            dependencies: [.product(name: "Lottie", package: "lottie-ios")]  // Убрал лишнюю запятую
         ),
+        .testTarget(
+            name: "LottieLiteTests",
+            dependencies: ["LottieLite"]
+        )
     ]
 )

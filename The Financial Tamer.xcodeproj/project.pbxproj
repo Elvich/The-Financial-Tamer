@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1B3077012E33DB1300E58B3B /* PieChart in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3077002E33DB1300E58B3B /* PieChart */; };
-		1B30770C2E3419B200E58B3B /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 1B30770B2E3419B200E58B3B /* Lottie */; };
+		1B3077B52E3432DE00E58B3B /* LottieLite in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3077B42E3432DE00E58B3B /* LottieLite */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,7 +58,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1B3077012E33DB1300E58B3B /* PieChart in Frameworks */,
-				1B30770C2E3419B200E58B3B /* Lottie in Frameworks */,
+				1B3077B52E3432DE00E58B3B /* LottieLite in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -128,7 +128,7 @@
 			name = "The Financial Tamer";
 			packageProductDependencies = (
 				1B3077002E33DB1300E58B3B /* PieChart */,
-				1B30770B2E3419B200E58B3B /* Lottie */,
+				1B3077B42E3432DE00E58B3B /* LottieLite */,
 			);
 			productName = "The Financial Tamer";
 			productReference = 1BC064922DF332FE00901557 /* The Financial Tamer.app */;
@@ -214,7 +214,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				1B3076FE2E33DAF800E58B3B /* XCLocalSwiftPackageReference "The Financial Tamer/Packages/Utilities" */,
-				1B3077022E340D4700E58B3B /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				1B3077B32E3432D300E58B3B /* XCLocalSwiftPackageReference "The Financial Tamer/Packages/LottieLite" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1BC064932DF332FE00901557 /* Products */;
@@ -585,28 +585,20 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "The Financial Tamer/Packages/Utilities";
 		};
-/* End XCLocalSwiftPackageReference section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		1B3077022E340D4700E58B3B /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/airbnb/lottie-ios";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.5.2;
-			};
+		1B3077B32E3432D300E58B3B /* XCLocalSwiftPackageReference "The Financial Tamer/Packages/LottieLite" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "The Financial Tamer/Packages/LottieLite";
 		};
-/* End XCRemoteSwiftPackageReference section */
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		1B3077002E33DB1300E58B3B /* PieChart */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PieChart;
 		};
-		1B30770B2E3419B200E58B3B /* Lottie */ = {
+		1B3077B42E3432DE00E58B3B /* LottieLite */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1B3077022E340D4700E58B3B /* XCRemoteSwiftPackageReference "lottie-ios" */;
-			productName = Lottie;
+			productName = LottieLite;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

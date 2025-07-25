@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Lottie
+import LottieLite
 
 struct SplashView: View {
     @State private var showMainView = false

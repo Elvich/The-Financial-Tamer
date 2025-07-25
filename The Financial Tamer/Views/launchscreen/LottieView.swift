@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Lottie
+import LottieLite
 
 struct LottieView: UIViewRepresentable {
     var filename: String
