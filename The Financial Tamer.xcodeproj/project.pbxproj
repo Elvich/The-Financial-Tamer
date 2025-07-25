@@ -211,6 +211,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				1B3076FE2E33DAF800E58B3B /* XCLocalSwiftPackageReference "The Financial Tamer/Packages/Utilities" */,
+				1B3077022E340D4700E58B3B /* XCRemoteSwiftPackageReference "lottie-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1BC064932DF332FE00901557 /* Products */;
@@ -582,6 +583,17 @@
 			relativePath = "The Financial Tamer/Packages/Utilities";
 		};
 /* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		1B3077022E340D4700E58B3B /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		1B3077002E33DB1300E58B3B /* PieChart */ = {
