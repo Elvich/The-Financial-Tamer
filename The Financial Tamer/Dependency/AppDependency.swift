@@ -13,21 +13,21 @@ class AppDependency: ObservableObject, NetworkClientProtocol, NetworkStatusServi
 {
     @Published var appSettings: AppSettings
     
-    var categoriesService: CategoriesService
+    @Published var categoriesService: CategoriesService
     
-    var bankAccountsService: BankAccountsService
+    @Published var bankAccountsService: BankAccountsService
     
-    var currencyService: CurrencyService
+    @Published var currencyService: CurrencyService
     
-    var transactionsService: TransactionsService
+    @Published var transactionsService: TransactionsService
     
-    var storageManager: StorageManager
+    @Published var storageManager: StorageManager
     
-    var dateService: DateService
+    @Published var dateService: DateService
     
-    var networkStatus: NetworkStatusService
+    @Published var networkStatus: NetworkStatusService
     
-    var networkClient: NetworkClient
+    @Published var networkClient: NetworkClient
     
     init(){
         let networkClient = DefaultNetworkClient()
