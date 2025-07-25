@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1B3077012E33DB1300E58B3B /* PieChart in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3077002E33DB1300E58B3B /* PieChart */; };
+		1B30770C2E3419B200E58B3B /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 1B30770B2E3419B200E58B3B /* Lottie */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1B3077012E33DB1300E58B3B /* PieChart in Frameworks */,
+				1B30770C2E3419B200E58B3B /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -126,6 +128,7 @@
 			name = "The Financial Tamer";
 			packageProductDependencies = (
 				1B3077002E33DB1300E58B3B /* PieChart */,
+				1B30770B2E3419B200E58B3B /* Lottie */,
 			);
 			productName = "The Financial Tamer";
 			productReference = 1BC064922DF332FE00901557 /* The Financial Tamer.app */;
@@ -599,6 +602,11 @@
 		1B3077002E33DB1300E58B3B /* PieChart */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PieChart;
+		};
+		1B30770B2E3419B200E58B3B /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1B3077022E340D4700E58B3B /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
