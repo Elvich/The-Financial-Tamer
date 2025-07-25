@@ -4,9 +4,8 @@
 //
 //  Created by Maksim Gritsuk on 25.07.2025.
 //
-
-import Foundation
 import UIKit
+import PieChart
 
 public class PieChartView: UIView {
     
@@ -45,8 +44,9 @@ public class PieChartView: UIView {
         
         guard !entities.isEmpty else { return }
         
-        let processedData = processEntities()
+        let processedData = processEntities() // Обрабатываем данные внутри PieChartView
         drawRingChart(with: processedData, in: rect)
+        drawCenterText(for: processedData, in: rect) // Передаем обработанные данные
     }
     
     // MARK: - Data Processing
@@ -77,10 +77,8 @@ public class PieChartView: UIView {
         
         guard totalValue > 0 else { return }
         
-        var currentAngle: CGFloat = -.pi / 2 // Начинаем с верхней точки
-        let circlePath = UIBezierPath()
+        var currentAngle: CGFloat = -.pi / 2 // Начинаем с верхней точки (по часовой стрелке)
         
-        // Рисуем сегменты кольца
         for (index, entity) in data.enumerated() {
             let percentage = CGFloat((entity.value as NSDecimalNumber).doubleValue / (totalValue as NSDecimalNumber).doubleValue)
             let angle = CGFloat.pi * 2 * percentage
@@ -102,9 +100,6 @@ public class PieChartView: UIView {
             
             currentAngle += angle
         }
-        
-        // Рисуем текст по центру
-        drawCenterText(total: totalValue, in: rect)
     }
     
     private func createRingSegmentPath(center: CGPoint, radius: CGFloat, startAngle: CGFloat, endAngle: CGFloat, lineWidth: CGFloat) -> UIBezierPath {
@@ -115,13 +110,13 @@ public class PieChartView: UIView {
         // Внутренний радиус
         let innerRadius = radius - lineWidth / 2
         
-        // Внешняя дуга (против часовой стрелки)
+        // Внешняя дуга (по часовой стрелке)
         path.addArc(
             withCenter: center,
             radius: outerRadius,
             startAngle: startAngle,
             endAngle: endAngle,
-            clockwise: true // Против часовой стрелки
+            clockwise: true
         )
         
         // Линия к внутренней дуге
@@ -141,7 +136,7 @@ public class PieChartView: UIView {
             radius: innerRadius,
             startAngle: endAngle,
             endAngle: startAngle,
-            clockwise: false // По часовой стрелке
+            clockwise: false
         )
         
         // Линия к началу внешней дуги
@@ -155,40 +150,101 @@ public class PieChartView: UIView {
         return path
     }
     
-    private func drawCenterText(total: Decimal, in rect: CGRect) {
-        guard !entities.isEmpty else { return }
+    // MARK: - Center Text Drawing
+    
+    private func drawCenterText(for displayedEntities: [Entity], in rect: CGRect) {
+        guard !displayedEntities.isEmpty else { return }
         
-        let totalValue = NSDecimalNumber(decimal: total).doubleValue
-        let totalString = String(format: "%.2f", totalValue)
+        let totalValue = displayedEntities.reduce(Decimal(0)) { $0 + $1.value }
+        guard totalValue > 0 else { return }
+
+        let fullText = NSMutableAttributedString()
         
-        // Определяем валюту (берем из первой транзакции)
-        let currencySymbol = "₽" // Заглушка, в реальности нужно брать из данных
+        // Определяем максимальное количество строк, которые могут поместиться
+        // Примерно 3-4 строки в центре кольца -- можно настроить
+        let maxLinesToShow = min(5, displayedEntities.count)
         
-        let fullText = "\(totalString)\n\(currencySymbol)"
+        for (index, entity) in displayedEntities.prefix(maxLinesToShow).enumerated() {
+            if index > 0 {
+                fullText.append(NSAttributedString(string: "\n")) // Перевод строки между категориями
+            }
+            
+            // Рассчитываем процент
+            let percentageValue = (entity.value as NSDecimalNumber).doubleValue / (totalValue as NSDecimalNumber).doubleValue
+            let percentageString = String(format: "%.0f%%", percentageValue * 100)
+            
+            // Получаем цвет для категории
+            let colorIndex = index % PieChartColors.colors.count
+            let color = PieChartColors.colors[colorIndex]
+            
+            // 1. Добавляем цветную точку
+            let dotAttachment = TextAttachment()
+            dotAttachment.color = color
+            // Размер точки адаптируется под шрифт
+            let fontSize: CGFloat = 12.0
+            dotAttachment.bounds = CGRect(x: 0, y: -1, width: fontSize * 0.6, height: fontSize * 0.6)
+            
+            let dotString = NSAttributedString(attachment: dotAttachment)
+            fullText.append(dotString)
+            fullText.append(NSAttributedString(string: " ")) // Пробел после точки
+
+            // 2. Добавляем название категории и процент
+            // Ограничиваем длину названия категории, если нужно
+            let maxLabelLength = 12
+            let categoryName = entity.label.count > maxLabelLength ? String(entity.label.prefix(maxLabelLength)) + "..." : entity.label
+            
+            let combinedString = "\(categoryName) \(percentageString)"
+            let combinedAttributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: fontSize, weight: .regular),
+                .foregroundColor: UIColor.label
+            ]
+            fullText.append(NSAttributedString(string: combinedString, attributes: combinedAttributes))
+        }
         
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.alignment = .center
+        // Если есть еще категории, не помещающиеся в maxLinesToShow, добавим "+N"
+        if displayedEntities.count > maxLinesToShow {
+            let remainingCount = displayedEntities.count - maxLinesToShow
+            fullText.append(NSAttributedString(string: "\n+\(remainingCount) \(displayedEntities.count > maxLinesToShow + 1 ? "категорий" : "категория")", attributes: [
+                .font: UIFont.systemFont(ofSize: 10, weight: .light),
+                .foregroundColor: UIColor.secondaryLabel
+            ]))
+        }
+
+        // Рассчитываем размер и позицию для отрисовки
+        // Ограничиваем размер текста, чтобы он помещался внутри кольца
+        let maxTextWidth = min(rect.width, rect.height) * 0.6 // ~60% от меньшей стороны
+        let maxTextHeight = min(rect.width, rect.height) * 0.6
         
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 24, weight: .bold),
-            .foregroundColor: UIColor.label,
-            .paragraphStyle: paragraphStyle
-        ]
-        
+        let maxSize = CGSize(width: maxTextWidth, height: maxTextHeight)
         let textSize = fullText.boundingRect(
-            with: CGSize(width: rect.width, height: rect.height),
-            options: .usesLineFragmentOrigin,
-            attributes: attributes,
+            with: maxSize,
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
             context: nil
         ).size
-        
+
         let textRect = CGRect(
             x: rect.midX - textSize.width / 2,
             y: rect.midY - textSize.height / 2,
             width: textSize.width,
             height: textSize.height
         )
-        
-        fullText.draw(in: textRect, withAttributes: attributes)
+
+        // Отрисовываем текст
+        fullText.draw(in: textRect)
+    }
+}
+
+// MARK: - Text Attachment Helper
+private class TextAttachment: NSTextAttachment {
+    var color: UIColor = .black
+
+    override func image(forBounds imageBounds: CGRect, textContainer: NSTextContainer?, characterIndex charIndex: Int) -> UIImage? {
+        let size = imageBounds.size
+        let renderer = UIGraphicsImageRenderer(size: size)
+        let image = renderer.image { _ in
+            color.setFill()
+            UIBezierPath(ovalIn: CGRect(origin: .zero, size: size)).fill()
+        }
+        return image
     }
 }

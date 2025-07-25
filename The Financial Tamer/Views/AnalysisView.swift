@@ -104,7 +104,6 @@ class AnalysisViewController: UIViewController {
     private func updatePieChart() {
         // 1. Сгруппировать транзакции по категориям
         var categoryTotals: [String: Decimal] = [:]
-        
         for transaction in transactions {
             let categoryName = transaction.category.name
             if let existingTotal = categoryTotals[categoryName] {
@@ -123,6 +122,7 @@ class AnalysisViewController: UIViewController {
         let sortedEntities = entities.sorted { $0.value > $1.value }
         
         // 4. Передать данные в график
+        // PieChartView сам обработает их (возьмет первые 5 + "Остальные")
         DispatchQueue.main.async {
             self.pieChartView.entities = sortedEntities
         }
