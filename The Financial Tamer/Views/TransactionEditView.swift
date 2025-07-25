@@ -130,8 +130,7 @@ struct TransactionEditView: View {
                     // Статья
                     HStack {
                         Text("Статья")
-                            .font(.system(size: 17, weight: .regular))
-                            .foregroundColor(validationErrors.contains(.category) ? .red : .primary)
+                            .foregroundColor(validationErrors.contains(.category) ? .red : .secondary)
                         Spacer()
                         Button(action: {
                             if !availableCategories.isEmpty {
@@ -141,7 +140,7 @@ struct TransactionEditView: View {
                             HStack(spacing: 4) {
                                 if let category = selectedCategory {
                                     Text("\(category.name)")
-                                        .foregroundColor(.primary)
+                                        
                                 } else {
                                     Text("Выберите")
                                         .foregroundColor(validationErrors.contains(.category) ? .red : .secondary)
@@ -156,7 +155,7 @@ struct TransactionEditView: View {
                     .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(validationErrors.contains(.category) ? Color.red.opacity(0.1) : Color.clear)
+                            .fill(validationErrors.contains(.category) ? Color.red.opacity(0.1) : Color(.systemBackground))
                     )
                     Divider()
                     // Сумма
@@ -197,7 +196,7 @@ struct TransactionEditView: View {
                     .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(validationErrors.contains(.amount) ? Color.red.opacity(0.1) : Color.clear)
+                            .fill(validationErrors.contains(.amount) ? Color.red.opacity(0.1) : Color(.systemBackground))
                     )
                     Divider()
                     // Дата
@@ -240,7 +239,7 @@ struct TransactionEditView: View {
                     .padding(.vertical, 12)
                 }
                 .padding(16)
-                .background(Color.white)
+                .background(Color(.systemBackground))
                 .cornerRadius(16)
                 .shadow(color: Color(.black).opacity(0.04), radius: 8, x: 0, y: 2)
                 .padding(.horizontal, 8)
