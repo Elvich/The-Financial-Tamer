@@ -77,11 +77,11 @@ public class PieChartView: UIView {
         
         guard totalValue > 0 else { return }
         
-        var currentAngle: CGFloat = -.pi / 2 // Начинаем с верхней точки (по часовой стрелке)
+        var currentAngle: CGFloat = -.pi/2  // Начинаем с верхней точки (по часовой стрелке)
         
         for (index, entity) in data.enumerated() {
             let percentage = CGFloat((entity.value as NSDecimalNumber).doubleValue / (totalValue as NSDecimalNumber).doubleValue)
-            let angle = CGFloat.pi * 2 * percentage
+            let angle = -CGFloat.pi * 2  * percentage
             
             // Получаем цвет для сегмента
             let color = PieChartColors.colors[index % PieChartColors.colors.count]
@@ -116,7 +116,7 @@ public class PieChartView: UIView {
             radius: outerRadius,
             startAngle: startAngle,
             endAngle: endAngle,
-            clockwise: true
+            clockwise: false
         )
         
         // Линия к внутренней дуге
@@ -136,7 +136,7 @@ public class PieChartView: UIView {
             radius: innerRadius,
             startAngle: endAngle,
             endAngle: startAngle,
-            clockwise: false
+            clockwise: true
         )
         
         // Линия к началу внешней дуги
