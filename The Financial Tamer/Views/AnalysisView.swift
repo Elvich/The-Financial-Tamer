@@ -126,6 +126,7 @@ class AnalysisViewController: UIViewController {
         DispatchQueue.main.async {
             self.pieChartView.entities = sortedEntities
         }
+        
     }
     
     private func sortTransactions(_ transactions: [Transaction], _ sortType: SortType) -> [Transaction] {

@@ -5,7 +5,6 @@
 //  Created by Maksim Gritsuk on 25.07.2025.
 //
 import UIKit
-import PieChart
 
 public class PieChartView: UIView {
     
@@ -13,11 +12,19 @@ public class PieChartView: UIView {
     
     public var entities: [Entity] = [] {
         didSet {
-            setNeedsDisplay()
+            animateChart(reverse: true) {
+                self.animateChart(reverse: false)
+            }
         }
     }
     
-    private let lineWidth: CGFloat = 12 // Толщина кольца
+    private var lineWidth: CGFloat = 12 // Толщина кольца
+    
+    private var progressAngle: CGFloat = 0 { // Начальное значение 0
+        didSet {
+            setNeedsDisplay() // Это перерисует view
+        }
+    }
     
     // MARK: - Initializers
     
@@ -49,6 +56,53 @@ public class PieChartView: UIView {
         drawCenterText(for: processedData, in: rect) // Передаем обработанные данные
     }
     
+    public func animateChart(reverse: Bool = false, completion: (() -> Void)? = nil) {
+        let startProgress: CGFloat = reverse ? 2 : 0
+        
+        progressAngle = startProgress
+        //setNeedsDisplay()
+        
+        if reverse {
+            // Быстрая очистка
+            //lineWidth = 12
+            setNeedsDisplay()
+            
+            animateStep(reverse: reverse, duration: 0.008, completion: completion)
+        } else {
+            // Нормальное заполнение с анимацией толщины
+            lineWidth = 4
+            setNeedsDisplay()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                self.animateStep(reverse: reverse, duration: 0.008) {
+                    completion?()
+                }
+            }
+        }
+    }
+
+    private func animateStep(reverse: Bool, duration: TimeInterval, completion: (() -> Void)?) {
+        let totalSteps = 120
+        let delay = duration / Double(totalSteps)
+        
+        func animateStepInternal(currentStep: Int) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(currentStep) * delay) {
+                let progress = (CGFloat(currentStep) / CGFloat(totalSteps)) * 2
+                self.progressAngle = reverse ? (2.0 - progress) : progress
+                self.lineWidth = reverse ? 12 - (6 * progress) : 6 * progress
+                self.setNeedsDisplay()
+                
+                if currentStep < totalSteps {
+                    animateStepInternal(currentStep: currentStep + 1)
+                } else {
+                    completion?()
+                }
+            }
+        }
+        
+        animateStepInternal(currentStep: 0)
+    }
+    
     // MARK: - Data Processing
     
     private func processEntities() -> [Entity] {
@@ -74,6 +128,7 @@ public class PieChartView: UIView {
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let radius = min(rect.width, rect.height) / 2 - lineWidth / 2
         let totalValue = data.reduce(Decimal(0)) { $0 + $1.value }
+        let progressAngle:CGFloat = self.progressAngle
         
         guard totalValue > 0 else { return }
         
@@ -81,7 +136,7 @@ public class PieChartView: UIView {
         
         for (index, entity) in data.enumerated() {
             let percentage = CGFloat((entity.value as NSDecimalNumber).doubleValue / (totalValue as NSDecimalNumber).doubleValue)
-            let angle = -CGFloat.pi * 2  * percentage
+            let angle = -CGFloat.pi * progressAngle  * percentage
             
             // Получаем цвет для сегмента
             let color = PieChartColors.colors[index % PieChartColors.colors.count]
@@ -157,7 +212,7 @@ public class PieChartView: UIView {
         
         let totalValue = displayedEntities.reduce(Decimal(0)) { $0 + $1.value }
         guard totalValue > 0 else { return }
-
+        
         let fullText = NSMutableAttributedString()
         
         // Определяем максимальное количество строк, которые могут поместиться
@@ -187,7 +242,7 @@ public class PieChartView: UIView {
             let dotString = NSAttributedString(attachment: dotAttachment)
             fullText.append(dotString)
             fullText.append(NSAttributedString(string: " ")) // Пробел после точки
-
+            
             // 2. Добавляем название категории и процент
             // Ограничиваем длину названия категории, если нужно
             let maxLabelLength = 12
@@ -209,7 +264,7 @@ public class PieChartView: UIView {
                 .foregroundColor: UIColor.secondaryLabel
             ]))
         }
-
+        
         // Рассчитываем размер и позицию для отрисовки
         // Ограничиваем размер текста, чтобы он помещался внутри кольца
         let maxTextWidth = min(rect.width, rect.height) * 0.6 // ~60% от меньшей стороны
@@ -221,14 +276,14 @@ public class PieChartView: UIView {
             options: [.usesLineFragmentOrigin, .usesFontLeading],
             context: nil
         ).size
-
+        
         let textRect = CGRect(
             x: rect.midX - textSize.width / 2,
             y: rect.midY - textSize.height / 2,
             width: textSize.width,
             height: textSize.height
         )
-
+        
         // Отрисовываем текст
         fullText.draw(in: textRect)
     }
@@ -237,7 +292,7 @@ public class PieChartView: UIView {
 // MARK: - Text Attachment Helper
 private class TextAttachment: NSTextAttachment {
     var color: UIColor = .black
-
+    
     override func image(forBounds imageBounds: CGRect, textContainer: NSTextContainer?, characterIndex charIndex: Int) -> UIImage? {
         let size = imageBounds.size
         let renderer = UIGraphicsImageRenderer(size: size)
