@@ -8,56 +8,56 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @StateObject private var storageManager = StorageManager.shared
-    @StateObject private var networkStatusService = NetworkStatusService.shared
+    
+    @EnvironmentObject var appDependency: AppDependency
     
     var body: some View {
         NavigationStack {
             List {
-                Section("Data Storage") {
-                    Picker("Storage Method", selection: $storageManager.currentStorageType) {
+                
+                Section("Тема"){
+                    Picker("Тема приложения", selection: $appDependency.appSettings.appTheme) {
+                        ForEach(AppSettings.Theme.allCases, id: \.self) { type in
+                            Text(type.displayName).tag(type)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+                
+                Section("Хранилище данных") {
+                    Picker("Способ хранения", selection: $appDependency.storageManager.currentStorageType) {
                         ForEach(StorageType.allCases, id: \.self) { type in
                             Text(type.displayName).tag(type)
                         }
                     }
                     .pickerStyle(.menu)
-                    
-                    Text("Current: \(storageManager.currentStorageType.displayName)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
                 }
                 
-                Section("Network Status") {
+                Section("Статус соединения") {
                     HStack {
-                        Image(systemName: networkStatusService.isOnline ? "wifi" : "wifi.slash")
-                            .foregroundColor(networkStatusService.isOnline ? .green : .red)
-                        Text(networkStatusService.isOnline ? "Online" : "Offline")
+                        Image(systemName: appDependency.networkStatus.isOnline ? "wifi" : "wifi.slash")
+                            .foregroundColor(appDependency.networkStatus.isOnline ? .green : .red)
+                        Text( appDependency.networkStatus.isOnline ? "Online" : "Offline")
                         Spacer()
                     }
                     
-                    if let error = networkStatusService.lastNetworkError {
+                    if let error = appDependency.networkStatus.lastNetworkError {
                         Text("Last error: \(error.localizedDescription)")
                             .font(.caption)
                             .foregroundColor(.red)
                     }
                 }
                 
-                Section("About") {
+                Section("О приложении") {
                     HStack {
-                        Text("Version")
+                        Text("Версия")
                         Spacer()
-                        Text("1.0.0")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    HStack {
-                        Text("Build")
-                        Spacer()
-                        Text("1")
+                        Text("0.6.1")
                             .foregroundColor(.secondary)
                     }
                 }
             }
+            .padding(.bottom)
             .navigationTitle("Settings")
         }
     }
@@ -65,4 +65,5 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
-} 
+        .environmentObject(AppDependency())
+}

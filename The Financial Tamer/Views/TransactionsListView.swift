@@ -8,11 +8,12 @@
 import SwiftUI
 
 struct TransactionsListView: View {
+    
+    @EnvironmentObject var appDependency: AppDependency
+    
     let direction: Direction
-    @ObservedObject var transactionsService: TransactionsService
-    let categoriesService: CategoriesService
-    let bankAccountsService: BankAccountsService
-    private let currencyService = CurrencyService()
+    
+    
     @State private var showingCreateTransaction = false
     @State private var selectedTransaction: Transaction? = nil
     
@@ -20,6 +21,10 @@ struct TransactionsListView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var totalAmount: Decimal = 0
+    
+    init(direction: Direction){
+        self.direction = direction
+    }
     
     private var title: String {
         (direction == .outcome ? "Расходы" : "Доходы") + " сегодня"
@@ -29,17 +34,12 @@ struct TransactionsListView: View {
         NavigationStack {
             ZStack{
                 VStack{
-                    //TransactionsView(transactionService: transactionsService, direction: direction).totalRowView()
-                      //  .padding(16)
-                        //.background(Color(.systemBackground))
-                        //.cornerRadius(12)
-                        //.padding(.horizontal, 16)
                     
                     HStack {
                         Text("Всего")
                         Spacer()
                         if let first = transactions.first {
-                            Text("\(totalAmount) \(currencyService.getSymbol(for: first.account.currency))")
+                            Text("\(totalAmount) \(appDependency.currencyService.getSymbol(for: first.account.currency))")
                         } else {
                             Text("\(totalAmount)")
                         }
@@ -97,12 +97,7 @@ struct TransactionsListView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     NavigationLink(
-                        destination: HistoryView(
-                            direction: direction,
-                            transactionsService: transactionsService,
-                            categoriesService: categoriesService,
-                            bankAccountsService: bankAccountsService
-                        )
+                        destination: HistoryView( direction: direction )
                     ) {
                         Image(systemName: "clock")
                             .foregroundColor(.purple)
@@ -110,16 +105,13 @@ struct TransactionsListView: View {
                 }
             }
             .sheet(isPresented: $showingCreateTransaction) {
-                TransactionEditView(mode: .create, direction: direction, transaction: nil, transactionsService: transactionsService, categoriesService: categoriesService, bankAccountsService: bankAccountsService)
+                TransactionEditView(mode: .create, direction: direction, transaction: nil)
             }
             .sheet(item: $selectedTransaction) { transaction in
                 TransactionEditView(
                     mode: .edit,
                     direction: direction,
-                    transaction: transaction,
-                    transactionsService: transactionsService,
-                    categoriesService: categoriesService,
-                    bankAccountsService: bankAccountsService
+                    transaction: transaction
                 )
             }
         }
@@ -131,7 +123,7 @@ struct TransactionsListView: View {
         do {
             let start = DateService().startOfDay()
             let end = DateService().endOfDay()
-            transactions = try await transactionsService.getTransactions(start: start, end: end, direction: direction, hardRefresh: hardRefresh)
+            transactions = try await appDependency.transactionsService.getTransactions(start: start, end: end, direction: direction, hardRefresh: hardRefresh)
         } catch {
             errorMessage = "Ошибка загрузки: \(error.localizedDescription)"
         }
@@ -158,10 +150,6 @@ struct TransactionsListView: View {
 }
 
 #Preview {
-    TransactionsListView(
-        direction: .income,
-        transactionsService: TransactionsService(networkClient: DefaultNetworkClient()),
-        categoriesService: CategoriesService(networkClient: DefaultNetworkClient()),
-        bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient())
-    )
+    TransactionsListView(direction: .income)
+        .environmentObject(AppDependency())
 }

@@ -8,10 +8,13 @@
 import SwiftUI
 
 struct CategoryView: View {
-    let categoriesService: CategoriesService
+    
+    @EnvironmentObject var appDependency: AppDependency
+    
     @State private var categories: [Category] = []
     @State private var searchText: String = ""
     @State private var isLoading: Bool = false
+    
     
     func fuzzyMatch(_ pattern: String, in text: String) -> Bool {
         if pattern.isEmpty { return true }
@@ -52,7 +55,7 @@ struct CategoryView: View {
                     }
                 }
                 .refreshable {
-                    categories = try! await categoriesService.categories(hardRefresh: true)
+                    categories = try! await appDependency.categoriesService.categories(hardRefresh: true)
                 }
             }
             .padding(.bottom)
@@ -60,7 +63,7 @@ struct CategoryView: View {
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск")
             .task {
                 isLoading = true
-                categories = try! await categoriesService.categories()
+                categories = try! await appDependency.categoriesService.categories()
                 isLoading = false
             }
         }
@@ -68,5 +71,6 @@ struct CategoryView: View {
 }
 
 #Preview {
-    CategoryView(categoriesService: CategoriesService(networkClient: DefaultNetworkClient()))
+    CategoryView()
+        .environmentObject(AppDependency())
 }

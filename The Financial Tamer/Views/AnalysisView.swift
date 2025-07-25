@@ -430,8 +430,13 @@ class FilterCell: UITableViewCell {
         button.setContentCompressionResistancePriority(.required, for: .horizontal)
         button.addTarget(self, action: action, for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 20, bottom: 7, right: 20)
-        
+        if #available(iOS 15.0, *) {
+            var config = UIButton.Configuration.filled()
+            config.contentInsets = NSDirectionalEdgeInsets(top: 7, leading: 20, bottom: 7, trailing: 20)
+            button.configuration = config
+        } else {
+            button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 20, bottom: 7, right: 20)
+        }
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         spacer.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
@@ -635,11 +640,13 @@ class OverlayDatePickerView: UIView {
 import SwiftUI
 
 struct AnalysisViewControllerWrapper: UIViewControllerRepresentable {
+    
+    @EnvironmentObject var appDependency: AppDependency
+    
     let direction: Direction
-    @ObservedObject var transactionService: TransactionsService
 
     func makeUIViewController(context: Context) -> UIViewController {
-        AnalysisViewController(direction: direction, transactionService: transactionService)
+        AnalysisViewController(direction: direction, transactionService: appDependency.transactionsService)
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
@@ -649,12 +656,13 @@ struct AnalysisViewControllerWrapper: UIViewControllerRepresentable {
 
 #Preview {
     NavigationStack {
-        AnalysisViewControllerWrapper(direction: .outcome, transactionService: TransactionsService(networkClient: DefaultNetworkClient()))
+        AnalysisViewControllerWrapper(direction: .outcome)
             .navigationTitle("Анализ")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(Color(.systemGroupedBackground), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
     }
+    .environmentObject(AppDependency())
 }
 
 #endif

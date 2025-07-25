@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Transaction {
+final class Transaction: Sendable {
     @Attribute(.unique)
     var id: Int
     var account: TransactionAccount
@@ -106,7 +106,7 @@ extension Transaction{
     }
 }
 
-struct TransactionDTO: Codable {
+struct TransactionDTO: Codable, Sendable {
     let id: Int
     let account: TransactionAccount
     let category: Category

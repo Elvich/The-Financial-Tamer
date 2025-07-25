@@ -8,10 +8,11 @@
 import SwiftUI
 import UIKit
 
-// MARK: - AccountView
 struct AccountView: View {
+    // MARK: - Dependencies
+    @EnvironmentObject var appDependency: AppDependency
+    
     // MARK: - Properties
-    @ObservedObject var bankAccountsService: BankAccountsService
     @State private var account: BankAccount?
     
     // MARK: - UI State
@@ -23,9 +24,7 @@ struct AccountView: View {
     @State private var showCurrencyDialog = false
     @State private var isLoading = false
     @State private var errorMessage: String?
-    
-    // MARK: - Services
-    private let currencyService = CurrencyService()
+        
     
     // MARK: - Constants
     private enum Constants {
@@ -216,7 +215,7 @@ private extension AccountView {
     func balanceDisplayView(for account: BankAccount) -> some View {
         let balanceValue = NSDecimalNumber(decimal: account.balance).doubleValue
         let balanceString = String(format: Constants.balanceFormat, balanceValue)
-        let currencySymbol = currencyService.getSymbol(for: account.currency)
+        let currencySymbol = appDependency.currencyService.getSymbol(for: account.currency)
         
         return ZStack {
             if isBalanceHidden {
@@ -283,10 +282,10 @@ private extension AccountView {
             Spacer()
             if isEditing {
                 if let newAccount = newAccount {
-                    Text(currencyService.getSymbol(for: newAccount.currency))
+                    Text(appDependency.currencyService.getSymbol(for: newAccount.currency))
                 }
             } else {
-                Text(currencyService.getSymbol(for: account.currency))
+                Text(appDependency.currencyService.getSymbol(for: account.currency))
             }
         }
         .padding(Constants.verticalPadding)
@@ -297,7 +296,7 @@ private extension AccountView {
     
     var currencyOptions: some View {
         ForEach(Currency.allCases, id: \.self) { currency in
-            Button("\(currency.displayName) \(currencyService.getSymbol(for: currency.code))") {
+            Button("\(currency.displayName) \(appDependency.currencyService.getSymbol(for: currency.code))") {
                 updateCurrency(to: currency.code)
             }
         }
@@ -314,7 +313,7 @@ private extension AccountView {
         }
         
         do {
-            account = try await bankAccountsService.getAccount(id: Utility.accountId ,hardRefresh: hardRefresh)
+            account = try await appDependency.bankAccountsService.getAccount(id: Utility.accountId ,hardRefresh: hardRefresh)
         } catch {
             print("Failed to load account: \(error.localizedDescription)")
             await MainActor.run {
@@ -378,7 +377,7 @@ private extension AccountView {
                 return
             }
             
-            try await bankAccountsService.update(from: &newAccount)
+            try await appDependency.bankAccountsService.update(from: &newAccount)
             await loadAccount()
         } catch {
             print("Failed to save account changes: \(error.localizedDescription)")
@@ -538,5 +537,6 @@ private class ShakeDetectorView: UIView {
 
 // MARK: - Preview
 #Preview {
-    AccountView(bankAccountsService: BankAccountsService(networkClient: DefaultNetworkClient()))
+    AccountView()
+        .environmentObject(AppDependency())
 }

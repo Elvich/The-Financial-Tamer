@@ -8,7 +8,6 @@
 import Foundation
 import SwiftData
 import SwiftUI
-import _SwiftData_SwiftUI
 
 final class BankAccountsSwiftDataStorage: BankAccountsStorage {
     

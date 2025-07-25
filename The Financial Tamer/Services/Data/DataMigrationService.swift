@@ -28,8 +28,6 @@ final class DataMigrationService {
             await migrateCategories(from: oldStorageType, to: newStorageType)
             
             print("Data migration completed successfully")
-        } catch {
-            print("Data migration failed: \(error)")
         }
     }
     

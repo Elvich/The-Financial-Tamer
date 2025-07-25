@@ -10,6 +10,9 @@ import SwiftData
 
 @main
 struct The_Financial_TamerApp: App {
+    
+    @StateObject var appDependency = AppDependency()
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             TransactionSwiftDataEntity.self,
@@ -30,6 +33,7 @@ struct The_Financial_TamerApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(appDependency)
         }
         .modelContainer(sharedModelContainer)
     }

@@ -11,80 +11,60 @@ import SwiftData
 struct ContentView: View {
     
     @Environment(\.modelContext) private var modelContext: ModelContext
-    @StateObject private var storageManager = StorageManager.shared
-    @StateObject private var networkStatusService = NetworkStatusService.shared
-    
-    @StateObject private var transactionsService = TransactionsService(networkClient: DefaultNetworkClient())
-    @StateObject private var categoriesService = CategoriesService(networkClient: DefaultNetworkClient())
-    @StateObject private var bankAccountsService = BankAccountsService(networkClient: DefaultNetworkClient())
+    @EnvironmentObject var appDependency: AppDependency
     
     var body: some View {
         ZStack {
             TabView {
                 Tab("Расходы", image: "Outcome") {
-                    TransactionsListView(
-                        direction: .outcome,
-                        transactionsService: transactionsService,
-                        categoriesService: categoriesService,
-                        bankAccountsService: bankAccountsService
-                    )
+                    TransactionsListView(direction: .outcome)
                 }
                 Tab("Доходы", image: "Income") {
-                    TransactionsListView(
-                        direction: .income,
-                        transactionsService: transactionsService,
-                        categoriesService: categoriesService,
-                        bankAccountsService: bankAccountsService
-                    )
+                    TransactionsListView(direction: .income)
                 }
                 Tab("Счет", image: "Account") {
-                    AccountView(bankAccountsService: bankAccountsService)
+                    AccountView()
                 }
                 Tab("Статьи", image: "Articles") {
-                    CategoryView(categoriesService: categoriesService)
+                    CategoryView()
                 }
-                            Tab("Настройки", image: "Settings") {
-                SettingsView()
-            }
+                Tab("Настройки", image: "Settings") {
+                    SettingsView()
+                }
             }
             
             // Оффлайн индикатор
             VStack {
-                OfflineIndicatorView()
+                OfflineIndicatorView(container: appDependency )
                 Spacer()
             }
         }
         .onAppear {
-            setupServices()
+            appDependency.SetupServices(modelContext: modelContext)
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             // Проверяем настройки при возвращении в приложение
             checkStorageSettings()
         }
+        .preferredColorScheme(colorScheme)
     }
     
-    private func setupServices() {
-        // Передаем modelContext в сервисы
-        transactionsService.modelContext = modelContext
-        //categoriesService.modelContext = modelContext
-        bankAccountsService.modelContext = modelContext
-        
-        // Настраиваем AccountBalanceService
-        transactionsService.setBankAccountsService(bankAccountsService)
+    private var colorScheme: ColorScheme? {
+        switch appDependency.appSettings.appTheme {
+        case .light: return .light
+        case .dark: return .dark
+        case .system: return nil
+        }
     }
     
     private func checkStorageSettings() {
         // Проверяем, изменились ли настройки хранения
         let savedType = UserDefaults.standard.string(forKey: "StorageType") ?? StorageType.swiftData.rawValue
-        let newStorageType = StorageType(rawValue: savedType) ?? .swiftData
-        
-        if storageManager.currentStorageType != newStorageType {
-            storageManager.currentStorageType = newStorageType
-            // Здесь можно добавить логику миграции данных
-        }
+        _ = StorageType(rawValue: savedType) ?? .swiftData
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(AppDependency())
 }
