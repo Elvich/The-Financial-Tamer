@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		1BCA969E2E33BBA000001A95 /* PieChart in Frameworks */ = {isa = PBXBuildFile; productRef = 1BCA969D2E33BBA000001A95 /* PieChart */; };
+		1BCA96A02E33BBA000001A95 /* Utilities in Frameworks */ = {isa = PBXBuildFile; productRef = 1BCA969F2E33BBA000001A95 /* Utilities */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		1BC064A22DF332FF00901557 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +57,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1BCA969E2E33BBA000001A95 /* PieChart in Frameworks */,
+				1BCA96A02E33BBA000001A95 /* Utilities in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +119,8 @@
 			);
 			name = "The Financial Tamer";
 			packageProductDependencies = (
+				1BCA969D2E33BBA000001A95 /* PieChart */,
+				1BCA969F2E33BBA000001A95 /* Utilities */,
 			);
 			productName = "The Financial Tamer";
 			productReference = 1BC064922DF332FE00901557 /* The Financial Tamer.app */;
@@ -195,6 +204,9 @@
 			);
 			mainGroup = 1BC064892DF332FE00901557;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				1BCA96982E33B92400001A95 /* XCLocalSwiftPackageReference "The Financial Tamer/Packages/Utilities" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1BC064932DF332FE00901557 /* Products */;
 			projectDirPath = "";
@@ -400,6 +412,7 @@
 				DEVELOPMENT_TEAM = 6ZLS7ZXJD4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -428,6 +441,7 @@
 				DEVELOPMENT_TEAM = 6ZLS7ZXJD4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -558,6 +572,24 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		1BCA96982E33B92400001A95 /* XCLocalSwiftPackageReference "The Financial Tamer/Packages/Utilities" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "The Financial Tamer/Packages/Utilities";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1BCA969D2E33BBA000001A95 /* PieChart */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PieChart;
+		};
+		1BCA969F2E33BBA000001A95 /* Utilities */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Utilities;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1BC0648A2DF332FE00901557 /* Project object */;
 }

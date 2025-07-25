@@ -1,4 +1,5 @@
 import UIKit
+import PieChart
 
 // MARK: - AnalysisViewController
 class AnalysisViewController: UIViewController {
@@ -23,6 +24,7 @@ class AnalysisViewController: UIViewController {
     
     // MARK: - UI Components
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
+    private let pieChartView = PieChartView()
     
     // MARK: - Initialization
     init(direction: Direction, transactionService: TransactionsService) {
@@ -47,11 +49,13 @@ class AnalysisViewController: UIViewController {
     
     // MARK: - Setup
     private func setupUI() {
-        setupTableView()
+        setupUIComponents()
         setupNavigationBar()
     }
     
-    private func setupTableView() {
+    
+    private func setupUIComponents() {
+        // --- Настройка TableView ---
         tableView.dataSource = self
         tableView.delegate = self
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -59,7 +63,15 @@ class AnalysisViewController: UIViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "TransactionCell")
         tableView.separatorStyle = .singleLine
         
+        // --- Настройка PieChartView ---
+        pieChartView.translatesAutoresizingMaskIntoConstraints = false
+        pieChartView.backgroundColor = .secondarySystemBackground
+        
+        // --- Добавление TableView на view ---
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "ChartCell")
         view.addSubview(tableView)
+        
+        // --- Установка constraints только для TableView ---
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -85,6 +97,34 @@ class AnalysisViewController: UIViewController {
             transactions = try await transactionService.getTransactions(start: startDate, end: endDate, direction: direction)
             transactions = sortTransactions(transactions, sortType)
             tableView.reloadData()
+        }
+    }
+    
+    // MARK: - Pie Chart
+    private func updatePieChart() {
+        // 1. Сгруппировать транзакции по категориям
+        var categoryTotals: [String: Decimal] = [:]
+        
+        for transaction in transactions {
+            let categoryName = transaction.category.name
+            if let existingTotal = categoryTotals[categoryName] {
+                categoryTotals[categoryName] = existingTotal + transaction.amount
+            } else {
+                categoryTotals[categoryName] = transaction.amount
+            }
+        }
+        
+        // 2. Преобразовать в массив Entity
+        let entities = categoryTotals.map { label, value in
+            Entity(value: value, label: label)
+        }
+        
+        // 3. Отсортировать по убыванию суммы
+        let sortedEntities = entities.sorted { $0.value > $1.value }
+        
+        // 4. Передать данные в график
+        DispatchQueue.main.async {
+            self.pieChartView.entities = sortedEntities
         }
     }
     
@@ -155,19 +195,23 @@ extension AnalysisViewController: UITableViewDataSource {
         switch section {
         case .filters:
             return 1
+        case .chart:
+            return 1
         case .transactions:
             return transactions.count
         }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let section = Section(rawValue: indexPath.section) else { 
-            return UITableViewCell() 
+        guard let section = Section(rawValue: indexPath.section) else {
+            return UITableViewCell()
         }
         
         switch section {
         case .filters:
             return createFilterCell(for: indexPath)
+        case .chart:
+            return createChartCell(for: indexPath)
         case .transactions:
             return createTransactionCell(for: indexPath)
         }
@@ -220,6 +264,36 @@ extension AnalysisViewController: UITableViewDataSource {
         )
         
         cell.selectionStyle = .none
+        return cell
+    }
+    
+    private func createChartCell(for indexPath: IndexPath) -> UITableViewCell{
+        // Создаем кастомную ячейку для графика
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ChartCell", for: indexPath)
+        // Очистка содержимого ячейки перед повторным использованием
+        cell.contentView.subviews.forEach { $0.removeFromSuperview() }
+        
+        // Добавляем pieChartView в ячейку
+        // Убедимся, что у pieChartView нет старых констрейнтов
+        pieChartView.removeFromSuperview()
+        pieChartView.translatesAutoresizingMaskIntoConstraints = false
+        
+        cell.contentView.addSubview(pieChartView)
+        
+        // Устанавливаем констрейнты для pieChartView внутри ячейки
+        NSLayoutConstraint.activate([
+            pieChartView.topAnchor.constraint(equalTo: cell.contentView.topAnchor),
+            pieChartView.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor),
+            pieChartView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor),
+            pieChartView.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor),
+            pieChartView.heightAnchor.constraint(equalToConstant: 200) // Задайте нужную высоту
+        ])
+        
+        // Обновляем данные графика перед отображением
+        updatePieChart()
+        
+        cell.selectionStyle = .none
+        cell.backgroundColor = .systemBackground // Или другой нужный цвет
         return cell
     }
     
@@ -295,27 +369,31 @@ extension AnalysisViewController: UITableViewDelegate {
         switch section {
         case .filters:
             return nil
+        case .chart:
+            return nil
         case .transactions:
             return "Операции"
         }
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        guard let section = Section(rawValue: indexPath.section) else { 
-            return UITableView.automaticDimension 
+        guard let section = Section(rawValue: indexPath.section) else {
+            return UITableView.automaticDimension
         }
         
         switch section {
         case .filters:
             return UITableView.automaticDimension
+        case .chart:
+            return 200
         case .transactions:
             return 56
         }
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let section = Section(rawValue: indexPath.section), section == .transactions else { 
-            return 
+        guard let section = Section(rawValue: indexPath.section), section == .transactions else {
+            return
         }
         tableView.deselectRow(at: indexPath, animated: true)
         showErrorView()
@@ -331,6 +409,7 @@ extension AnalysisViewController {
     
     private enum Section: Int, CaseIterable {
         case filters
+        case chart
         case transactions
     }
     
@@ -644,11 +723,11 @@ struct AnalysisViewControllerWrapper: UIViewControllerRepresentable {
     @EnvironmentObject var appDependency: AppDependency
     
     let direction: Direction
-
+    
     func makeUIViewController(context: Context) -> UIViewController {
         AnalysisViewController(direction: direction, transactionService: appDependency.transactionsService)
     }
-
+    
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         // No-op
     }
