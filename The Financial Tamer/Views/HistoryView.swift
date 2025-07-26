@@ -95,10 +95,12 @@ struct HistoryView: View {
                 }
             }
         }
-        .sheet(isPresented: $showingEditTransaction) {
-            if let transaction = selectedTransaction {
-                TransactionEditView(mode: .edit, direction: direction, transaction: transaction)
-            }
+        .sheet(item: $selectedTransaction) { transaction in
+            TransactionEditView(
+                mode: .edit,
+                direction: direction,
+                transaction: transaction
+            )
         }
     }
 

@@ -52,7 +52,7 @@ struct TransactionsListView: View {
                     
                     if isLoading {
                         ProgressView()
-                        
+                        Spacer()
                     } else if let errorMessage = errorMessage {
                         Text(errorMessage)
                             .foregroundColor(.red)

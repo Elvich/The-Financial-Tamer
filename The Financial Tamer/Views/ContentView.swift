@@ -43,7 +43,6 @@ struct ContentView: View {
             appDependency.SetupServices(modelContext: modelContext)
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            // Проверяем настройки при возвращении в приложение
             checkStorageSettings()
         }
         .preferredColorScheme(colorScheme)

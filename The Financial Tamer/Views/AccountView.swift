@@ -70,10 +70,14 @@ private extension AccountView {
     }
     
     func accountContent(for account: BankAccount) -> some View {
-        ScrollView{
+        
+        let chartView = BalanceHistoryChartView()
+        
+        return ScrollView{
             VStack(spacing: Constants.spacing) {
                 balanceSection(for: account)
                 currencySection(for: account)
+                chartView
                 Spacer()
             }
         }

@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		1B3077012E33DB1300E58B3B /* PieChart in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3077002E33DB1300E58B3B /* PieChart */; };
+		1B3077B52E3432DE00E58B3B /* LottieLite in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3077B42E3432DE00E58B3B /* LottieLite */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		1BC064A22DF332FF00901557 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +57,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1B3077012E33DB1300E58B3B /* PieChart in Frameworks */,
+				1B3077B52E3432DE00E58B3B /* LottieLite in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,12 +79,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1B3076FF2E33DB1000E58B3B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		1BC064892DF332FE00901557 = {
 			isa = PBXGroup;
 			children = (
 				1B50F72D2DFB17C000EB4C16 /* The Financial Tamer */,
 				1BC064A42DF332FF00901557 /* The Financial TamerTests */,
 				1BC064AE2DF332FF00901557 /* The Financial TamerUITests */,
+				1B3076FF2E33DB1000E58B3B /* Frameworks */,
 				1BC064932DF332FE00901557 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,6 +127,8 @@
 			);
 			name = "The Financial Tamer";
 			packageProductDependencies = (
+				1B3077002E33DB1300E58B3B /* PieChart */,
+				1B3077B42E3432DE00E58B3B /* LottieLite */,
 			);
 			productName = "The Financial Tamer";
 			productReference = 1BC064922DF332FE00901557 /* The Financial Tamer.app */;
@@ -195,6 +212,10 @@
 			);
 			mainGroup = 1BC064892DF332FE00901557;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				1B3076FE2E33DAF800E58B3B /* XCLocalSwiftPackageReference "The Financial Tamer/Packages/Utilities" */,
+				1B3077B32E3432D300E58B3B /* XCLocalSwiftPackageReference "The Financial Tamer/Packages/LottieLite" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1BC064932DF332FE00901557 /* Products */;
 			projectDirPath = "";
@@ -558,6 +579,28 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		1B3076FE2E33DAF800E58B3B /* XCLocalSwiftPackageReference "The Financial Tamer/Packages/Utilities" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "The Financial Tamer/Packages/Utilities";
+		};
+		1B3077B32E3432D300E58B3B /* XCLocalSwiftPackageReference "The Financial Tamer/Packages/LottieLite" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "The Financial Tamer/Packages/LottieLite";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1B3077002E33DB1300E58B3B /* PieChart */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PieChart;
+		};
+		1B3077B42E3432DE00E58B3B /* LottieLite */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LottieLite;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1BC0648A2DF332FE00901557 /* Project object */;
 }

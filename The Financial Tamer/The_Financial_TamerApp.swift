@@ -32,7 +32,7 @@ struct The_Financial_TamerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashView()
                 .environmentObject(appDependency)
         }
         .modelContainer(sharedModelContainer)
